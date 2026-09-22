@@ -1,14 +1,18 @@
 services:
   - type: web
     name: swuforce-website
-    runtime: static
+    runtime: node
+    plan: free
     buildCommand: npm install && npm run build
-    staticPublishPath: ./dist
+    startCommand: npm start
+    healthCheckPath: /api/health
     autoDeployTrigger: commit
-    headers:
-      - path: /*
-        name: X-Content-Type-Options
-        value: nosniff
-      - path: /*
-        name: Referrer-Policy
-        value: strict-origin-when-cross-origin
+    envVars:
+      - key: NODE_ENV
+        value: production
+      - key: SUPABASE_URL
+        sync: false
+      - key: SUPABASE_PUBLISHABLE_KEY
+        sync: false
+      - key: SUPABASE_SECRET_KEY
+        sync: false

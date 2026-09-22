@@ -4,21 +4,24 @@ import {
   ArrowDownRight, ArrowRight, ArrowUpRight, ChevronDown,
   CircleDot, Code2, GitBranch, HardDrive,
   Instagram, Mail, Menu, MoveUpRight, BookOpen, Globe,
-  ShieldCheck, Smartphone, X
+  ShieldCheck, Smartphone, X, Trophy, UsersRound, Sparkles, Play, NotebookTabs
 } from 'lucide-react';
-import { site, focusAreas, milestones, experiences, faqs } from './content';
+import { site, focusAreas, activityItems, milestones, experiences, resourceLinks, faqs } from './content';
 import './styles.css';
+import './portal.css';
+import { PortalProvider, PortalRoutes, useAuth } from './portal.jsx';
 
 const icons = { hardDrive: HardDrive, smartphone: Smartphone, code: Code2 };
 
 function Brand({ inverted = false }) {
-  return <a className={`brand ${inverted ? 'brand-inverted' : ''}`} href="#home" aria-label="SWUFORCE 홈으로 이동">
+  return <a className={`brand ${inverted ? 'brand-inverted' : ''}`} href="/#home" aria-label="SWUFORCE 홈으로 이동">
     <img className="brand-logo" src="/swuforce-symbol.png" alt="" />
     <span className="brand-wordmark"><strong>SWUFORCE<span className="brand-period">.</span></strong><small>DIGITAL FORENSICS SOCIETY</small></span>
   </a>;
 }
 
 function Header() {
+  const { session } = useAuth();
   const [open, setOpen] = useState(false);
   const [scrolled, setScrolled] = useState(false);
   useEffect(() => {
@@ -33,19 +36,22 @@ function Header() {
     return () => window.removeEventListener('keydown', closeOnEscape);
   }, []);
   const links = [
-    ['#about', '소학회 소개'],
-    ['#focus', '활동 분야'],
-    ['#work', '프로젝트'],
-    ['#history', '연혁'],
+    ['/#about', '소학회 소개'],
+    ['/#focus', '스터디'],
+    ['/members', '학회원'],
+    ['/officers', '역대 운영진'],
+    ['/board', '게시판'],
+    ['/recruit', '신입 모집'],
+    [session ? '/me' : '/login', session ? '마이페이지' : '로그인'],
   ];
-  return <header className={`header ${scrolled ? 'is-scrolled' : ''}`}>
+  return <header className={`header ${window.location.pathname !== '/' ? 'portal-header' : ''} ${scrolled ? 'is-scrolled' : ''}`}>
     <div className="container header-inner">
       <Brand inverted />
       <nav className={`navigation ${open ? 'navigation-open' : ''}`} id="main-navigation" aria-label="주 메뉴">
         {links.map(([href, text]) => <a key={href} href={href} onClick={() => setOpen(false)}>{text}</a>)}
-        <a href="#join" onClick={() => setOpen(false)} className="mobile-join">JOIN US <ArrowUpRight size={15} /></a>
+        <a href="/recruit" onClick={() => setOpen(false)} className="mobile-join">JOIN US <ArrowUpRight size={15} /></a>
       </nav>
-      <a href="#join" className="header-join">JOIN US <ArrowUpRight size={15} strokeWidth={2.5} /></a>
+      <a href="/recruit" className="header-join">JOIN US <ArrowUpRight size={15} strokeWidth={2.5} /></a>
       <button className="menu-button" type="button" aria-label={open ? '메뉴 닫기' : '메뉴 열기'} aria-expanded={open} aria-controls="main-navigation" onClick={() => setOpen(value => !value)}>{open ? <X size={25} /> : <Menu size={25} />}</button>
     </div>
   </header>;
@@ -118,32 +124,51 @@ function About() {
   return <section className="section about-section" id="about">
     <div className="container about-layout">
       <div className="about-title"><SectionHeading num="01" eyebrow="ABOUT US" title={<>우리는<br/>SWUFORCE입니다.</>} /><div className="about-stamp"><span>SWU<span>FORCE</span></span><small>SEOUL WOMEN'S UNIVERSITY</small></div></div>
-      <div className="about-body"><span className="overline">WHO WE ARE</span><h3>호기심을 질문으로,<br/>질문을 <em>증거로.</em></h3><p>SWUFORCE는 서울여자대학교 정보보호학과의 디지털포렌식 소학회입니다. 2020년부터 스터디, 대회 참가, 프로젝트를 통해 서로 배우고 경험을 나누고 있습니다.</p><p>기존 S.W.F.S.(Seoul Women’s University Forensic Study)에서 SWUFORCE로 이름을 바꿨습니다. SWU + 포렌식 + 스터디, 그리고 SWU + FORCE라는 의미를 담고 있습니다. KUCIS 소속, CCA 연합, hspace 파트너 소학회로 활동합니다.</p><div className="about-stat-row"><div><strong>2020<span>—</span></strong><small>소학회 출범</small></div><div><strong>SWU<span>+</span></strong><small>FORENSICS + STUDY</small></div></div></div>
+      <div className="about-body"><span className="overline">WHO WE ARE</span><h3>호기심을 질문으로,<br/>질문을 <em>증거로.</em></h3><p>SWUFORCE는 서울여자대학교 정보보호학과의 디지털포렌식 소학회입니다. 2020년부터 스터디, 대회 참가, 프로젝트를 통해 서로 배우고 경험을 나누고 있습니다.</p><p>기존 S.W.F.S.(Seoul Women’s University Forensic Study)에서 SWUFORCE로 이름을 바꿨습니다. SWU(서울여대) + Forensics(포렌식) + Study(스터디), 그리고 SWU + FORCE라는 의미를 담고 있습니다. KUCIS 소속, CCA 연합, hspace 파트너 소학회로 활동합니다.</p><div className="about-stat-row"><div><strong>2020<span>—</span></strong><small>소학회 출범</small></div><div><strong>SWU<span>+</span></strong><small>FORENSICS + STUDY</small></div></div></div>
     </div>
   </section>;
 }
 
 function Focus() {
-  return <section className="section focus-section" id="focus"><div className="container"><div className="heading-spread"><SectionHeading num="02" eyebrow="WHAT WE EXPLORE" title={<>다양한 관점으로<br/>흔적을 탐구합니다.</>} subtitle="스터디·대회·프로젝트를 중심으로 디지털포렌식을 함께 탐구합니다." /><div className="section-corner">FOCUS AREAS <span>↗</span></div></div><div className="focus-grid">{focusAreas.map(area => {const Icon = icons[area.icon];return <article className="focus-card" key={area.id}><div className="focus-top"><span>{area.id} / 03</span><Icon size={29} strokeWidth={1.5} /></div><div><div className="focus-en">{area.name}</div><h3>{area.korean}</h3><p>{area.description}</p></div><div className="focus-tags">{area.tags.map(t => <span key={t}>{t}</span>)}</div></article>})}</div><p className="content-note">※ 활동 분야는 홈페이지 구성을 위한 소개 항목이며, 학기별 실제 커리큘럼은 운영진 공지를 따릅니다.</p></div></section>;
+  return <section className="section focus-section" id="focus"><div className="container"><div className="heading-spread"><SectionHeading num="02" eyebrow="WHAT WE EXPLORE" title={<>기초부터 심화까지,<br/>함께 배우는 포렌식.</>} subtitle="기초·윈도우·모바일 포렌식 팀 스터디로 배움과 실습을 이어갑니다." /><div className="section-corner">FOCUS AREAS <span>↗</span></div></div><div className="focus-grid">{focusAreas.map(area => {const Icon = icons[area.icon];return <article className="focus-card" key={area.id}><div className="focus-top"><span>{area.id} / {String(focusAreas.length).padStart(2, '0')}</span><Icon size={29} strokeWidth={1.5} /></div><div><div className="focus-en">{area.name}</div><h3>{area.korean}</h3><p>{area.description}</p></div><div className="focus-tags">{area.tags.map(t => <span key={t}>{t}</span>)}</div></article>})}</div><p className="content-note">※ 학기별 세부 커리큘럼과 운영 방식은 모집·활동 공지에 따라 달라질 수 있습니다.</p></div></section>;
+}
+
+function Activities() {
+  const eventIcons = { trophy: Trophy, users: UsersRound, sparkles: Sparkles };
+  return <section className="section activity-section" id="activities">
+    <div className="container">
+      <div className="heading-spread"><SectionHeading num="03" eyebrow="BEYOND THE STUDY" title={<>배움을 공유하고,<br/>경험으로 확장합니다.</>} subtitle="문제 풀이와 연구, 세미나와 교류까지. 함께 성장하는 SWUFORCE의 활동입니다." /><div className="section-corner">ACTIVITIES <span>↗</span></div></div>
+      <div className="activity-layout">
+        <div className="activity-feature"><span className="activity-feature-label"><span className="live-indicator"/> COMMUNITY & RECOGNITION</span><div className="activity-feature-symbol"><img src="/swuforce-symbol.png" alt="" /></div><div className="activity-feature-copy"><span>KUCIS</span><h3>우수 동아리<br/>선정 이력</h3><p>한국인터넷진흥원 KUCIS 우수 동아리에 선정된 경험을 바탕으로, 심화 스터디와 실무 연계 프로젝트를 이어갑니다.</p></div><a className="activity-feature-link" href={site.contact.velog} target="_blank" rel="noopener noreferrer">소학회 활동 기록 <ArrowUpRight size={18}/></a></div>
+        <div className="activity-list">{activityItems.map((item, i) => { const Icon = eventIcons[item.icon]; return <article className="activity-item" key={item.title}><div className="activity-index">0{i+1}</div><div className="activity-icon"><Icon size={24} strokeWidth={1.7}/></div><div className="activity-item-copy"><span>{item.label}</span><h3>{item.title}</h3><p>{item.description}</p></div></article>})}<a className="activity-instagram" href="https://www.instagram.com/p/Db-hRMOib92/" target="_blank" rel="noopener noreferrer"><Instagram size={18}/> Instagram에서 스터디 활동 보기 <ArrowUpRight size={17}/></a></div>
+      </div>
+    </div>
+  </section>;
 }
 
 function ProjectVisual({visual}) {
+  if (visual === 'ai') return <div className="project-graphic project-graphic-ai" aria-hidden="true"><div className="ai-sample ai-sample-left"><div className="ai-sample-header">SAMPLE_01</div><div className="ai-sample-content"><div className="ai-sample-shape"/></div><div className="ai-sample-bottom">IMAGE ANALYSIS</div></div><div className="ai-compare-line"><span>↔</span></div><div className="ai-sample ai-sample-right"><div className="ai-sample-header">SOURCE_TRACE</div><div className="ai-sample-content ai-sample-content-lines"><span/><span/><span/></div><div className="ai-sample-bottom">PROVENANCE CHECK</div></div><div className="project-graphic-tag">AI IMAGE FORENSICS <span>↗</span></div></div>;
   if (visual === 'cloud') return <div className="project-graphic project-graphic-cloud" aria-hidden="true"><div className="artifact-browser"><div className="artifact-browser-head"><span/><span/><span/><b>evidence://cloud-activity</b></div><div className="artifact-browser-content"><div className="tree-line tree-1"><GitBranch size={13}/> /GoogleDrive</div><div className="tree-line tree-2"><span className="tiny-folder"/> logs</div><div className="tree-line tree-3"><span className="tiny-file"/> sync_events.db <span className="db-ok">VERIFIED</span></div><div className="tree-line tree-3"><span className="tiny-file"/> activity.log</div><div className="tree-line tree-2"><span className="tiny-folder"/> artifacts</div><div className="tree-line tree-3"><span className="tiny-file"/> deletion_trace</div></div></div><div className="project-graphic-tag">RECOVERED ARTIFACTS <span>↗</span></div></div>;
   if (visual === 'seminar') return <div className="project-graphic project-graphic-seminar" aria-hidden="true"><div className="seminar-orbit orbit-one"/><div className="seminar-orbit orbit-two"/><div className="seminar-orbit orbit-three"/><div className="seminar-center"><span>SWU</span><strong>WITH<span>·</span></strong></div><div className="seminar-mark mark-one">01</div><div className="seminar-mark mark-two">02</div><div className="seminar-mark mark-three">03</div><div className="project-graphic-tag">SHARE · CONNECT · GROW <span>↗</span></div></div>;
   return <div className="project-graphic project-graphic-community" aria-hidden="true"><div className="community-back">CCA</div><div className="community-front"><span>COMMUNITY</span><strong>SHARE<br/>KNOWLEDGE.</strong><div className="community-bottom">2023 <span>↗</span></div></div><div className="project-graphic-tag">BEYOND CAMPUS <span>↗</span></div></div>;
 }
 
 function Projects() {
-  return <section className="section projects-section" id="work"><div className="container"><div className="heading-spread"><SectionHeading num="03" eyebrow="SELECTED RECORDS" title={<>질문을 넘어,<br/>기록으로 남긴 도전.</>} subtitle="공개 자료로 확인된 2023년의 대표 활동을 소개합니다." /><span className="year-mark">ARCHIVE / 2023</span></div><div className="project-grid">{experiences.map((e, i) => <article className="project-card" key={e.title}><ProjectVisual visual={e.visual}/><div className="project-content"><div className="project-meta"><span>{e.type}</span><span>{e.year}</span></div><div className="project-category">{e.tag}</div><h3>{e.title}</h3><p>{e.description}</p><div className="project-footnote"><ShieldCheck size={15}/>{e.footnote}</div></div></article>)}</div><div className="projects-bottom"><div><span className="tiny-arrow">↗</span><strong>다음 이야기는 우리가 만들어갑니다.</strong><p>새로운 연구와 활동 기록은 확인 후 차례로 추가할 수 있습니다.</p></div><a href="#join" className="text-link">함께할 기회 알아보기 <ArrowUpRight size={18}/></a></div></div></section>;
+  return <section className="section projects-section" id="work"><div className="container"><div className="heading-spread"><SectionHeading num="04" eyebrow="SELECTED RECORDS" title={<>질문을 넘어,<br/>기록으로 남긴 도전.</>} subtitle="AI 이미지 출처 판별부터 클라우드 포렌식까지, 대표 프로젝트와 발표를 소개합니다." /><span className="year-mark">PROJECTS / HIGHLIGHTS</span></div><div className="project-grid">{experiences.map((e, i) => <article className="project-card" key={e.title}><ProjectVisual visual={e.visual}/><div className="project-content"><div className="project-meta"><span>{e.type}</span><span>{e.year}</span></div><div className="project-category">{e.tag}</div><h3>{e.title}</h3><p>{e.description}</p><div className="project-footnote"><ShieldCheck size={15}/>{e.footnote}</div></div></article>)}</div><div className="projects-bottom"><div><span className="tiny-arrow">↗</span><strong>다음 이야기는 우리가 만들어갑니다.</strong><p>새로운 연구와 활동 기록은 확인 후 차례로 추가할 수 있습니다.</p></div><a href="#join" className="text-link">함께할 기회 알아보기 <ArrowUpRight size={18}/></a></div></div></section>;
 }
 
 function History() {
-  return <section className="section history-section" id="history"><div className="history-noise" aria-hidden="true"/><div className="container history-layout"><div className="history-intro"><SectionHeading num="04" eyebrow="OUR HISTORY" title={<>지금까지의 발자취,<br/><span>그리고 앞으로.</span></>} subtitle="작은 호기심에서 시작한 여정은 함께한 사람들의 기록으로 이어집니다." light /><div className="history-since">SINCE <strong>2020.</strong></div></div><div className="timeline">{milestones.map((m,i) => <div className="timeline-item" key={m.year}><div className="timeline-dot"><span/></div><div className="timeline-year">{m.year}</div><div className="timeline-detail"><h3>{m.title}</h3><p>{m.text}</p></div></div>)}<div className="timeline-item timeline-future"><div className="timeline-dot"><span/></div><div className="timeline-year">NEXT <ArrowUpRight size={17}/></div><div className="timeline-detail"><h3>다음 기록을 향해</h3><p>새로운 활동과 이야기를 함께 만들어갑니다.</p></div></div></div></div></section>;
+  return <section className="section history-section" id="history"><div className="history-noise" aria-hidden="true"/><div className="container history-layout"><div className="history-intro"><SectionHeading num="05" eyebrow="OUR HISTORY" title={<>지금까지의 발자취,<br/><span>그리고 앞으로.</span></>} subtitle="작은 호기심에서 시작한 여정은 함께한 사람들의 기록으로 이어집니다." light /><div className="history-since">SINCE <strong>2020.</strong></div></div><div className="timeline">{milestones.map((m,i) => <div className="timeline-item" key={m.year}><div className="timeline-dot"><span/></div><div className="timeline-year">{m.year}</div><div className="timeline-detail"><h3>{m.title}</h3><p>{m.text}</p>{m.url && <a href={m.url} target="_blank" rel="noopener noreferrer" className="timeline-source">관련 활동 기록 <ArrowUpRight size={14}/></a>}</div></div>)}<div className="timeline-item timeline-future"><div className="timeline-dot"><span/></div><div className="timeline-year">NEXT <ArrowUpRight size={17}/></div><div className="timeline-detail"><h3>다음 기록을 향해</h3><p>새로운 활동과 이야기를 함께 만들어갑니다.</p></div></div></div></div></section>;
+}
+
+function Resources() {
+  const archiveIcons = { book: NotebookTabs, smartphone: Smartphone, hardDrive: HardDrive, video: Play };
+  return <section className="section resources-section" id="resources"><div className="container"><div className="heading-spread"><SectionHeading num="06" eyebrow="KNOWLEDGE ARCHIVE" title={<>배움의 과정을<br/>기록하고 공유합니다.</>} subtitle="공식 기술 블로그와 공개 학습 자료, 활동 영상으로 SWUFORCE의 기록을 확인하세요." /><div className="section-corner">OPEN ARCHIVE <span>↗</span></div></div><div className="resources-grid">{resourceLinks.map((item,i) => {const Icon=archiveIcons[item.icon];return <a className="resource-card" key={item.url} href={item.url} target="_blank" rel="noopener noreferrer"><div className="resource-card-top"><span>{String(i+1).padStart(2,'0')} / {item.type}</span><ArrowUpRight size={20}/></div><div className="resource-card-icon"><Icon size={28} strokeWidth={1.5}/></div><h3>{item.title}</h3><p>{item.description}</p><span className="resource-cta">{item.cta}<ArrowUpRight size={15}/></span></a>})}</div></div></section>;
 }
 
 function Faq() {
   const [active, setActive] = useState(null);
-  return <section className="section faq-section" id="faq"><div className="container faq-layout"><SectionHeading num="05" eyebrow="FAQ" title={<>자주 묻는<br/>질문들.</>} subtitle="SWUFORCE에 대해 궁금한 점을 확인해 보세요."/><div className="faq-list">{faqs.map((faq,i) => <article className={`faq-item ${active===i ? 'faq-open' : ''}`} key={faq.question}><h3><button type="button" aria-expanded={active===i} aria-controls={`faq-panel-${i}`} onClick={() => setActive(active===i ? null : i)}><span className="faq-no">0{i+1}</span><span>{faq.question}</span><ChevronDown size={19}/></button></h3><div id={`faq-panel-${i}`} className="faq-panel" hidden={active!==i}><p>{faq.answer}</p></div></article>)}</div></div></section>;
+  return <section className="section faq-section" id="faq"><div className="container faq-layout"><SectionHeading num="07" eyebrow="FAQ" title={<>자주 묻는<br/>질문들.</>} subtitle="SWUFORCE에 대해 궁금한 점을 확인해 보세요."/><div className="faq-list">{faqs.map((faq,i) => <article className={`faq-item ${active===i ? 'faq-open' : ''}`} key={faq.question}><h3><button type="button" aria-expanded={active===i} aria-controls={`faq-panel-${i}`} onClick={() => setActive(active===i ? null : i)}><span className="faq-no">0{i+1}</span><span>{faq.question}</span><ChevronDown size={19}/></button></h3><div id={`faq-panel-${i}`} className="faq-panel" hidden={active!==i}><p>{faq.answer}</p></div></article>)}</div></div></section>;
 }
 
 function Join() {
@@ -152,19 +177,21 @@ function Join() {
     site.contact.github && { label: 'GitHub', url: site.contact.github, icon: GitBranch },
     site.contact.email && { label: 'E-mail', url: `mailto:${site.contact.email}`, icon: Mail },
     site.contact.tistory && { label: 'Tistory', url: site.contact.tistory, icon: BookOpen },
+    site.contact.velog && { label: 'Velog', url: site.contact.velog, icon: NotebookTabs },
+    site.contact.youtube && { label: 'YouTube', url: site.contact.youtube, icon: Play },
     site.contact.facebook && { label: 'Facebook', url: site.contact.facebook, icon: Globe },
     site.contact.notion && { label: 'Notion', url: site.contact.notion, icon: BookOpen },
   ].filter(Boolean);
-  return <section className="join-section" id="join"><div className="container join-inner"><div className="join-decoration" aria-hidden="true"><div className="decor-ring"/><div className="decor-ring"/><div className="decor-ring"/><div className="decor-cross">+</div></div><div className="join-copy"><div className="eyebrow"><span className="eyebrow-bar"/> 06 / JOIN SWUFORCE</div><h2>다음 단서를 찾을<br/><span>당신을 기다립니다.</span></h2><p>{site.recruiting.description}</p><div className="join-availability"><span className={site.recruiting.isOpen ? 'status-open' : 'status-closed'}/><span>{site.recruiting.isOpen ? `${site.recruiting.term || '신입 부원'} 모집 중` : '현재 확인된 모집 공고가 없습니다'}</span></div></div><div className="join-action">{site.recruiting.isOpen && site.contact.application ? <a className="button button-white" href={site.contact.application} target="_blank" rel="noopener noreferrer">지원하기 <ArrowUpRight size={19}/></a> : <a className="button button-white" href="#faq">모집 관련 FAQ 보기 <ArrowUpRight size={19}/></a>}{links.length ? <div className="join-links">{links.map(({label,url,icon:Icon}) => <a href={url} key={label} target={url.startsWith('mailto:') ? undefined : '_blank'} rel={url.startsWith('mailto:') ? undefined : 'noopener noreferrer'}><Icon size={17}/>{label}<ArrowUpRight size={14}/></a>)}</div> : <p className="join-contact-note">공식 연락처 및 SNS는 운영진 확인 후 등록됩니다.</p>}</div></div></section>;
+  return <section className="join-section" id="join"><div className="container join-inner"><div className="join-decoration" aria-hidden="true"><div className="decor-ring"/><div className="decor-ring"/><div className="decor-ring"/><div className="decor-cross">+</div></div><div className="join-copy"><div className="eyebrow"><span className="eyebrow-bar"/> 08 / JOIN SWUFORCE</div><h2>다음 단서를 찾을<br/><span>당신을 기다립니다.</span></h2><p>{site.recruiting.description}</p><div className="join-availability"><span className={site.recruiting.isOpen ? 'status-open' : 'status-closed'}/><span>{site.recruiting.isOpen ? `${site.recruiting.term || '신입 부원'} 모집 중` : '7.5기 마감 · 2027년 1학기 8기 모집 예정'}</span></div></div><div className="join-action">{site.recruiting.isOpen && site.contact.application ? <a className="button button-white" href={site.contact.application} target="_blank" rel="noopener noreferrer">지원하기 <ArrowUpRight size={19}/></a> : <a className="button button-white" href="/recruit">모집 안내 보기 <ArrowUpRight size={19}/></a>}{links.length ? <div className="join-links">{links.map(({label,url,icon:Icon}) => <a href={url} key={label} target={url.startsWith('mailto:') ? undefined : '_blank'} rel={url.startsWith('mailto:') ? undefined : 'noopener noreferrer'}><Icon size={17}/>{label}<ArrowUpRight size={14}/></a>)}</div> : <p className="join-contact-note">공식 연락처 및 SNS는 운영진 확인 후 등록됩니다.</p>}</div></div></section>;
 }
 
 function Footer() {
   const now = new Date().getFullYear();
-  return <footer className="footer"><div className="container footer-top"><div><Brand inverted/><p>서울여자대학교 디지털포렌식 소학회<br/>Curiosity into Evidence.</p></div><div className="footer-right"><span>EXPLORE</span><a href={site.contact.notion} target="_blank" rel="noopener noreferrer">Official Notion ↗</a><a href="#about">About</a><a href="#focus">What We Explore</a><a href="#work">Selected Records</a><a href="#join">Join Us</a></div></div><div className="container footer-bottom"><span>© {now} SWUFORCE. All rights reserved.</span><span>MADE FOR THOSE WHO LOOK CLOSER. <MoveUpRight size={13}/></span></div></footer>;
+  return <footer className="footer"><div className="container footer-top"><div><Brand inverted/><p>서울여자대학교 디지털포렌식 소학회<br/>Curiosity into Evidence.</p></div><div className="footer-right"><span>EXPLORE</span><a href={site.contact.notion} target="_blank" rel="noopener noreferrer">Official Notion ↗</a><a href="/#about">About</a><a href="/members">Members</a><a href="/officers">Leadership</a><a href="/board">Board</a><a href="/recruit">Recruit</a><a href="/#focus">What We Explore</a><a href="/#activities">Activities</a><a href="/#work">Projects</a><a href="/#resources">Archive</a><a href="/recruit">Join Us</a></div></div><div className="container footer-bottom"><span>© {now} SWUFORCE. All rights reserved.</span><span>MADE FOR THOSE WHO LOOK CLOSER. <MoveUpRight size={13}/></span></div></footer>;
 }
 
 function App() {
-  return <><a className="skip-link" href="#main-content">본문으로 건너뛰기</a><Header/><main id="main-content"><Hero/><About/><Focus/><Projects/><History/><Faq/><Join/></main><Footer/></>;
+  return <PortalProvider><a className="skip-link" href="#main-content">본문으로 건너뛰기</a><Header/>{window.location.pathname === '/' ? <main id="main-content"><Hero/><About/><Focus/><Activities/><Projects/><History/><Resources/><Faq/><Join/></main> : <PortalRoutes/>}<Footer/></PortalProvider>;
 }
 
 createRoot(document.getElementById('root')).render(<React.StrictMode><App/></React.StrictMode>);
