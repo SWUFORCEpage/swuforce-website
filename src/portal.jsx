@@ -117,7 +117,7 @@ function Alert({ message, positive = false }) {
 }
 function Badge({ children, type = '' }) { return <span className={`member-badge ${type}`}>{children}</span>; }
 function BadgeRow({ badges = [] }) {
-  return <div className="badge-row">{badges.map(b => <Badge key={b} type={b.includes('회장') ? 'gold' : b.includes('졸업') ? 'slate' : b.includes('활동') ? 'blue' : ''}>{b}</Badge>)}</div>;
+  return <div className="badge-row">{badges.map(b => <Badge key={b} type={b.includes('회장') ? 'gold' : b.includes('졸업') ? 'slate' : b.includes('활동') ? 'blue' : b.endsWith('기') ? 'cohort' : ''}>{b}</Badge>)}</div>;
 }
 function Turnstile({ sitekey, onToken }) {
   const target = useRef(null);
@@ -154,7 +154,7 @@ export function Board() {
   const { session, profile } = useAuth();
   const { data, error, loading } = useFetch('/api/board');
   const own = useFetch('/api/my/posts', [Boolean(session)]);
-  return <Page kicker="COMMUNITY / BOARD" title="열린 문의 게시판" description="비회원도 문의를 남길 수 있습니다. 답변은 현재 SWUFORCE 운영진만 작성합니다.">
+  return <Page kicker="COMMUNITY / BOARD" title="Community" description="비회원도 문의를 남길 수 있습니다. 답변은 현재 SWUFORCE 운영진만 작성합니다.">
     <div className="portal-actions"><a className="portal-button" href="/board/new"><Plus size={18}/> 문의 작성하기</a></div>
     <div className="portal-card">
       <h2>공개 게시글</h2>
@@ -246,7 +246,7 @@ export function Members() {
   const { data, error, loading } = useFetch('/api/members');
   const [filter, setFilter] = useState('all');
   const shown = (data?.members || []).filter(x => filter === 'all' || x.membership_status === filter);
-  return <Page kicker="PEOPLE / MEMBERS" title="SWUFORCE 학회원" description="공개에 동의한 학회원의 활동 기수와 활동 상태를 소개합니다.">
+  return <Page kicker="PEOPLE / MEMBERS" title="Members" description="공개에 동의한 학회원의 활동 기수와 활동 상태를 소개합니다.">
     <div className="filter-tabs"><button className={filter === 'all' ? 'selected' : ''} onClick={() => setFilter('all')}>전체</button><button className={filter === 'active' ? 'selected' : ''} onClick={() => setFilter('active')}>활동 학회원</button><button className={filter === 'alumni' ? 'selected' : ''} onClick={() => setFilter('alumni')}>졸업 학회원</button></div>
     <Alert message={error}/>
     {loading ? <p className="muted">학회원 명단을 불러오는 중…</p> : shown.length ? <div className="member-grid">{shown.map((m,i) => <div className="portal-card member-tile" key={`${m.display_name}-${m.cohort}-${i}`}><div className="avatar-mark"><UserRound size={25}/></div><h2>{m.display_name}</h2><BadgeRow badges={m.badges}/></div>)}</div> : <div className="portal-card empty-state">현재 공개된 학회원 명단이 없습니다.</div>}
@@ -259,7 +259,7 @@ export function Officers() {
     (groups[term.term_label] ||= []).push(term); return groups;
   }, {});
   const today = new Intl.DateTimeFormat('sv-SE', { timeZone: 'Asia/Seoul' }).format(new Date());
-  return <Page kicker="PEOPLE / LEADERSHIP" title="역대 회장·부회장단" description="SWUFORCE와 함께한 운영진의 발자취를 기록합니다.">
+  return <Page kicker="PEOPLE / LEADERSHIP" title="Leadership" description="SWUFORCE와 함께한 운영진의 발자취를 기록합니다.">
     <Alert message={error}/>
     {loading ? <p className="muted">역대 운영진을 불러오는 중…</p> : Object.keys(grouped).length ? Object.entries(grouped).map(([term, entries]) => <section className="portal-card history-term" key={term}>
       <div className="term-heading"><Crown size={25}/><h2>{term}</h2></div>
@@ -269,7 +269,7 @@ export function Officers() {
   </Page>;
 }
 export function Recruit() {
-  return <Page kicker="JOIN / RECRUITMENT" title="함께 흔적을 탐구할 다음 기수" description="SWUFORCE와 함께 디지털포렌식을 공부할 새로운 학우들을 기다립니다.">
+  return <Page kicker="JOIN / RECRUITMENT" title="Recruit" description="SWUFORCE와 함께 디지털포렌식을 공부할 새로운 학우들을 기다립니다.">
     <div className="recruit-hero portal-card"><div className="recruit-status"><Clock3 size={19}/> 모집 마감</div><p className="recruit-eyebrow">SWUFORCE RECRUITMENT</p><h2>7.5기 모집이<br/><span>마감되었습니다.</span></h2><p>2027년도 1학기에 예정된 <strong>8기 모집</strong>에 많은 관심 부탁드립니다.</p><a className="portal-button" href="https://www.instagram.com/swu.f0rc3/" target="_blank" rel="noreferrer">공식 Instagram에서 소식 받기 <ArrowUpRight size={18}/></a></div>
     <div className="portal-card"><h2>모집 소식 안내</h2><p>모집 일정, 지원 자격, 선발 절차 및 지원 링크는 모집 공고가 확정되면 공식 채널에 안내합니다. 회원가입은 기존 학회원에게도 열려 있으며, 학회원 배지는 운영진 승인 후 발급됩니다.</p></div>
   </Page>;
@@ -343,7 +343,7 @@ export function MyPage() {
     finally { setBusy(false); }
   }
   async function signOut() { await client.auth.signOut(); window.location.href = '/'; }
-  return <Page kicker="ACCOUNT / MY PAGE" title="마이페이지" description="내 활동 정보와 배지, 명단 공개 설정을 관리할 수 있습니다.">
+  return <Page kicker="ACCOUNT / MY PAGE" title="My Page" description="내 활동 정보와 배지, 명단 공개 설정을 관리할 수 있습니다.">
     {!ready ? <p className="muted">회원 정보를 확인하는 중…</p> : !session ? <div className="portal-card"><h2>로그인이 필요합니다.</h2><a href="/login" className="portal-button">로그인하기 <LogIn size={17}/></a></div> : !profile ? <div className="portal-card"><h2>회원 정보를 준비 중입니다.</h2><p>이메일 인증 또는 가입 절차가 완료되었는지 확인해 주세요.</p></div> : <>
       <Alert message={error}/><Alert message={message} positive/>
       <div className="portal-card my-profile"><div className="avatar-mark avatar-large"><UserRound size={31}/></div><div><h2>{profile.display_name}</h2><p className="muted">{profile.cohort}기 · {statusNames[profile.membership_status]}</p><BadgeRow badges={profile.badges}/></div></div>
@@ -447,9 +447,9 @@ function AdminTerms({ session }) {
 export function Admin() {
   const { profile, session, ready } = useAuth();
   const [tab, setTab] = useState('posts');
-  if (!ready) return <Page kicker="MANAGEMENT" title="관리자" description="권한 확인 중…"><p>불러오는 중…</p></Page>;
-  if (!profile?.can_moderate) return <Page kicker="MANAGEMENT" title="운영진 관리" description="현재 운영진 및 승인된 사이트 관리자 전용 페이지입니다."><div className="portal-card"><p>이 페이지에 접근할 수 없습니다.</p><a className="portal-button" href="/login">로그인하기</a></div></Page>;
-  return <Page kicker="MANAGEMENT" title="운영진 관리" description="비공개 문의 확인·답변과 학회원 승인, 운영진 이력을 관리합니다.">
+  if (!ready) return <Page kicker="MANAGEMENT" title="Admin" description="권한 확인 중…"><p>불러오는 중…</p></Page>;
+  if (!profile?.can_moderate) return <Page kicker="MANAGEMENT" title="Admin" description="현재 운영진 및 승인된 사이트 관리자 전용 페이지입니다."><div className="portal-card"><p>이 페이지에 접근할 수 없습니다.</p><a className="portal-button" href="/login">로그인하기</a></div></Page>;
+  return <Page kicker="MANAGEMENT" title="Admin" description="비공개 문의 확인·답변과 학회원 승인, 운영진 이력을 관리합니다.">
     <div className="filter-tabs"><button className={tab === 'posts' ? 'selected' : ''} onClick={() => setTab('posts')}>게시판 관리</button>
       {profile.can_administer && <><button className={tab === 'members' ? 'selected' : ''} onClick={() => setTab('members')}>학회원 관리</button><button className={tab === 'terms' ? 'selected' : ''} onClick={() => setTab('terms')}>역대 운영진</button></>}</div>
     {tab === 'posts' && <AdminPosts session={session}/>}
@@ -462,7 +462,7 @@ export function PortalRoutes() {
   const path = window.location.pathname.replace(/\/$/, '') || '/';
   const routes = {
     '/board': <Board/>, '/board/new': <BoardCompose/>,
-    '/members': <Members/>, '/officers': <Officers/>, '/recruit': <Recruit/>,
+    '/members': <Members/>, '/recruit': <Recruit/>,
     '/login': <AuthPage mode="login"/>, '/register': <AuthPage mode="register"/>,
     '/recover-password': <AuthPage mode="recover"/>, '/reset-password': <AuthPage mode="reset"/>,
     '/me': <MyPage/>, '/admin': <Admin/>,

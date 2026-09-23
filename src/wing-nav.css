@@ -1,0 +1,96 @@
+/* SWUFORCE 2.1 — mobile-style slide-out navigation on every viewport. */
+.swu-wing-header,.swu-wing-header.is-scrolled,.swu-wing-header.portal-header {
+  height:82px;z-index:35;
+}
+.swu-wing-header.portal-header,.swu-wing-header.portal-header.is-scrolled {position:sticky;top:0;background:#0c1b30;}
+.swu-wing-header.is-scrolled {position:fixed;}
+.swu-wing-header-inner{gap:20px;}
+.swu-wing-actions{display:flex;align-items:center;gap:13px;margin-left:auto;}
+.swu-wing-join{display:inline-flex!important;gap:15px;padding:13px 19px!important;min-height:45px;border-radius:2px;}
+.swu-wing-trigger{display:flex;align-items:center;gap:16px;justify-content:center;min-height:45px;min-width:112px;padding:0 16px;background:transparent;color:#eff8ff;border:1px solid rgba(169,207,242,.48);border-radius:2px;font:500 12px 'DM Mono',monospace;letter-spacing:.14em;transition:background .2s,border-color .2s;}
+.swu-wing-trigger:hover{background:#234463;border-color:#a9cff2;}
+.swu-wing-layer{position:fixed;inset:0;z-index:150;isolation:isolate;}
+.swu-wing-backdrop{position:absolute;inset:0;border:0;background:rgba(3,12,25,.69);cursor:pointer;animation:wing-fade .22s ease-out;}
+.swu-wing-panel{position:absolute;inset:0 0 0 auto;width:min(435px,calc(100vw - 28px));background:#0e2037;color:#edf5fc;box-shadow:-24px 0 90px rgba(0,0,0,.31);display:flex;flex-direction:column;max-height:100dvh;overflow-y:auto;overscroll-behavior:contain;animation:wing-slide .3s cubic-bezier(.2,.74,.19,1);}
+.swu-wing-panel:before{content:'';position:absolute;right:-125px;top:100px;width:335px;height:335px;border-radius:50%;border:1px solid rgba(130,194,239,.13);box-shadow:0 0 0 62px rgba(130,194,239,.035),0 0 0 124px rgba(130,194,239,.024);pointer-events:none;}
+.swu-wing-panel-head{position:relative;display:flex;align-items:center;justify-content:space-between;gap:12px;padding:28px 26px 28px 31px;border-bottom:1px solid rgba(164,205,238,.19);}
+.swu-wing-panel-brand{display:flex;align-items:center;gap:12px;font:800 20px/.99 'Manrope',sans-serif;letter-spacing:-.055em;}
+.swu-wing-panel-brand img{width:40px;height:40px;object-fit:contain;filter:brightness(0) invert(1);}
+.swu-wing-panel-brand small{display:block;margin-top:7px;font:400 9px 'DM Mono',monospace;color:#a1c9e8;letter-spacing:.19em;}
+.swu-wing-close{flex-shrink:0;display:grid;place-items:center;width:42px;height:42px;background:transparent;border:1px solid rgba(164,205,238,.3);color:#edf5fc;border-radius:2px;}
+.swu-wing-close:hover{background:#234463;}
+.swu-wing-panel-caption{position:relative;display:flex;justify-content:space-between;padding:25px 31px 15px;font:10px 'DM Mono',monospace;letter-spacing:.15em;color:#85adc9;}
+.swu-wing-links{position:relative;display:flex;flex-direction:column;padding:0 17px 20px;}
+.swu-wing-link{display:flex;align-items:center;gap:17px;min-height:75px;padding:14px 15px;border-bottom:1px solid rgba(164,205,238,.16);transition:background .18s,padding-left .18s;}
+.swu-wing-link:hover,.swu-wing-link.is-active{background:rgba(120,181,225,.13);padding-left:21px;}
+.swu-wing-link.is-active{border-left:3px solid #9fd8ff;}
+.swu-wing-link-index{align-self:flex-start;margin-top:11px;font:10px 'DM Mono',monospace;color:#7faaca;}
+.swu-wing-link-icon{color:#a0cdec;flex-shrink:0;}
+.swu-wing-link-text{display:flex;flex-direction:column;flex:1;gap:4px;min-width:0;}
+.swu-wing-link-text strong{font:700 25px/1.1 'Manrope',sans-serif;letter-spacing:-.035em;}
+.swu-wing-link-text small{font:12px/1.3 'Noto Sans KR',sans-serif;color:#98b6cf;}
+.swu-wing-link-arrow{color:#86bce5;opacity:0;transform:translate(-4px,4px);transition:opacity .2s,transform .2s;}
+.swu-wing-link:hover .swu-wing-link-arrow,.swu-wing-link.is-active .swu-wing-link-arrow{opacity:1;transform:translate(0,0);}
+.swu-wing-bottom{margin-top:auto;padding:12px 31px 30px;display:flex;flex-direction:column;gap:13px;}
+.swu-wing-bottom-join{display:flex;gap:12px;align-items:center;justify-content:center;background:#a9cff2;color:#132b45;padding:17px;font:700 13px 'DM Mono',monospace;letter-spacing:.11em;}
+.swu-wing-bottom-join:hover{background:#c8e5ff;}
+.swu-wing-bottom-join svg:last-child{margin-left:auto;}
+.swu-wing-minor{align-self:flex-start;display:flex;align-items:center;gap:8px;padding:5px 0;font:13px 'DM Mono',monospace;color:#b9d4e8;}
+.swu-wing-bottom>span{margin-top:12px;color:#6587a4;font:9px 'DM Mono',monospace;letter-spacing:.17em;}
+@keyframes wing-slide{from{transform:translateX(100%)}to{transform:translateX(0)}}
+@keyframes wing-fade{from{opacity:0}to{opacity:1}}
+/* Genuine destination pages instead of home anchors, retaining existing content. */
+.swu-subpage-intro{position:relative;overflow:hidden;background:linear-gradient(114deg,#0d1b30,#25496c);color:#fff;padding:91px 0 72px;}
+.swu-subpage-intro-inner{display:flex;align-items:center;justify-content:space-between;gap:36px;position:relative;}
+.swu-subpage-intro-inner>div:first-child{position:relative;z-index:1;}
+.swu-subpage-overline{font:11px 'DM Mono',monospace;color:#b3d5eb;letter-spacing:.17em;display:flex;align-items:center;gap:13px;}
+.swu-subpage-intro h1{font:800 clamp(65px,11vw,126px)/1 'Manrope',sans-serif;letter-spacing:-.065em;margin:28px 0 24px;}
+.swu-subpage-intro h1 span{color:#90c7f0;}
+.swu-subpage-intro p{font:500 clamp(15px,2.2vw,21px) 'Noto Sans KR',sans-serif;color:#d8e7f1;line-height:1.6;margin:0 0 20px;}
+.swu-subpage-detail{font:10px 'DM Mono',monospace;color:#84b3d5;letter-spacing:.16em;}
+.swu-subpage-mark{position:absolute;right:3%;top:50%;transform:translateY(-50%);width:min(270px,29vw);opacity:.26;display:flex;flex-direction:column;align-items:center;gap:20px;}
+.swu-subpage-mark img{filter:brightness(0) invert(1);width:100%;height:auto;}
+.swu-subpage-mark>span{font:10px 'DM Mono',monospace;letter-spacing:.2em;white-space:nowrap;}
+.swu-subpage-cta{background:#eaf4fa;padding:48px 0;}
+.swu-subpage-cta>.container{display:flex;justify-content:space-between;align-items:center;gap:24px;}
+.swu-subpage-cta span{font:11px 'DM Mono',monospace;letter-spacing:.18em;color:#477da7;}
+.swu-subpage-cta h2{font:800 27px 'Noto Sans KR',sans-serif;color:#18324d;margin:9px 0;}
+.swu-subpage-cta p{font:13px 'Noto Sans KR',sans-serif;color:#56768f;margin:0;}
+.swu-subpage-cta a{display:inline-flex;align-items:center;gap:15px;background:#1b3854;color:#fff;padding:17px 23px;white-space:nowrap;font:700 14px 'Manrope',sans-serif;}
+.swu-join-recruit-link{display:inline-flex;align-items:center;gap:9px;color:#24597a;font:600 12px 'Noto Sans KR',sans-serif;}
+.swu-join-recruit-link:hover{text-decoration:underline;}
+/* More legible member badges. Existing role permission model is unchanged. */
+.member-badge{display:inline-flex;align-items:center;min-height:29px;border-radius:99px;gap:6px;padding:5px 11px;font-weight:700;}
+.member-badge.cohort{background:#ebf2ff;color:#325c9c;border-color:#bbcfef;}
+.member-badge.gold{background:#fff4d9;color:#86560d;border-color:#f0cf86;}
+.member-badge.blue{background:#e6f7f0;color:#167151;border-color:#b0dfc7;}
+.member-badge.slate{background:#edf0f5;color:#52667b;border-color:#d4dce6;}
+.member-tile{border-top:3px solid #a3cdeb;border-radius:3px;transition:transform .2s,box-shadow .2s;}
+.member-tile:hover{transform:translateY(-3px);box-shadow:0 18px 34px #152c4913;}
+@media(max-width:740px){
+  .swu-wing-header,.swu-wing-header.is-scrolled,.swu-wing-header.portal-header{height:73px;}
+  .swu-wing-header .brand-wordmark small{letter-spacing:.08em;}
+  .swu-wing-join{min-height:41px;padding:10px 12px!important;font-size:10px;gap:6px!important;}
+  .swu-wing-trigger{min-width:46px;width:46px;min-height:41px;padding:0;border-color:rgba(169,207,242,.5);}
+  .swu-wing-trigger span{display:none;}
+  .swu-wing-actions{gap:9px;}
+  .swu-subpage-intro{padding:74px 0 62px;}
+  .swu-subpage-mark{width:165px;right:-34px;opacity:.14;}
+  .swu-subpage-cta>.container{align-items:flex-start;flex-direction:column;}
+  .swu-subpage-cta a{min-height:48px;}
+}
+@media(max-width:390px){
+  .swu-wing-header-inner{gap:8px;}
+  .swu-wing-header .brand{gap:7px;}
+  .swu-wing-header .brand-logo{width:30px;height:30px;}
+  .swu-wing-header .brand-wordmark strong{font-size:18px;}
+  .swu-wing-header .brand-wordmark small{font-size:6px;letter-spacing:0;}
+  .swu-wing-join{min-height:38px;padding:8px!important;}
+  .swu-wing-trigger{min-height:38px;width:40px;min-width:40px;}
+  .swu-wing-panel-head{padding:24px 18px;}
+  .swu-wing-links{padding:0 12px 16px;}
+  .swu-wing-link{min-height:70px;gap:13px;}
+  .swu-wing-link-text strong{font-size:22px;}
+  .swu-wing-bottom{padding:12px 20px 25px;}
+}
+@media(prefers-reduced-motion:reduce){.swu-wing-panel,.swu-wing-backdrop{animation:none!important}}

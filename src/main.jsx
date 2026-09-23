@@ -4,11 +4,13 @@ import {
   ArrowDownRight, ArrowRight, ArrowUpRight, ChevronDown,
   CircleDot, Code2, GitBranch, HardDrive,
   Instagram, Mail, Menu, MoveUpRight, BookOpen, Globe,
+  Home as HomeIcon, Info, Newspaper, MessageSquare, UserRound, UserPlus,
   ShieldCheck, Smartphone, X, Trophy, UsersRound, Sparkles, Play, NotebookTabs
 } from 'lucide-react';
 import { site, focusAreas, activityItems, milestones, experiences, resourceLinks, faqs } from './content';
 import './styles.css';
 import './portal.css';
+import './wing-nav.css';
 import { PortalProvider, PortalRoutes, useAuth } from './portal.jsx';
 
 const icons = { hardDrive: HardDrive, smartphone: Smartphone, code: Code2 };
@@ -16,14 +18,28 @@ const icons = { hardDrive: HardDrive, smartphone: Smartphone, code: Code2 };
 function Brand({ inverted = false }) {
   return <a className={`brand ${inverted ? 'brand-inverted' : ''}`} href="/#home" aria-label="SWUFORCE 홈으로 이동">
     <img className="brand-logo" src="/swuforce-symbol.png" alt="" />
-    <span className="brand-wordmark"><strong>SWUFORCE<span className="brand-period">.</span></strong><small>DIGITAL FORENSICS SOCIETY</small></span>
+    <span className="brand-wordmark"><strong>SWUFORCE<span className="brand-period">.</span></strong><small>DIGITAL FORENSICS</small></span>
   </a>;
 }
 
 function Header() {
-  const { session } = useAuth();
+  const { session, profile } = useAuth();
   const [open, setOpen] = useState(false);
   const [scrolled, setScrolled] = useState(false);
+  const toggleRef = React.useRef(null);
+  const closeRef = React.useRef(null);
+  const drawerRef = React.useRef(null);
+  const path = window.location.pathname;
+  const atHome = path === '/';
+  const links = [
+    { href: '/', label: 'Home', note: '처음으로', Icon: HomeIcon },
+    { href: '/about', label: 'About', note: '소학회 소개', Icon: Info },
+    { href: '/study', label: 'Study', note: '정규 스터디 · 자료', Icon: BookOpen },
+    { href: '/news', label: 'News', note: '소식 · 프로젝트', Icon: Newspaper },
+    { href: '/board', label: 'Community', note: '공개 · 비공개 문의', Icon: MessageSquare },
+    { href: '/recruit', label: 'Recruit', note: '신입 모집 일정', Icon: UsersRound },
+    { href: '/me', label: 'My Page', note: session ? '내 프로필 · 배지' : '로그인 후 이용', Icon: UserRound },
+  ];
   useEffect(() => {
     const onScroll = () => setScrolled(window.scrollY > 24);
     onScroll();
@@ -31,30 +47,66 @@ function Header() {
     return () => window.removeEventListener('scroll', onScroll);
   }, []);
   useEffect(() => {
-    const closeOnEscape = e => { if (e.key === 'Escape') setOpen(false); };
-    window.addEventListener('keydown', closeOnEscape);
-    return () => window.removeEventListener('keydown', closeOnEscape);
-  }, []);
-  const links = [
-    ['/#about', '소학회 소개'],
-    ['/#focus', '스터디'],
-    ['/members', '학회원'],
-    ['/officers', '역대 운영진'],
-    ['/board', '게시판'],
-    ['/recruit', '신입 모집'],
-    [session ? '/me' : '/login', session ? '마이페이지' : '로그인'],
-  ];
-  return <header className={`header ${window.location.pathname !== '/' ? 'portal-header' : ''} ${scrolled ? 'is-scrolled' : ''}`}>
-    <div className="container header-inner">
-      <Brand inverted />
-      <nav className={`navigation ${open ? 'navigation-open' : ''}`} id="main-navigation" aria-label="주 메뉴">
-        {links.map(([href, text]) => <a key={href} href={href} onClick={() => setOpen(false)}>{text}</a>)}
-        <a href="/recruit" onClick={() => setOpen(false)} className="mobile-join">JOIN US <ArrowUpRight size={15} /></a>
+    if (!open) return;
+    // Prevent the content behind the slide-out wing from scrolling.
+    const previousOverflow = document.body.style.overflow;
+    document.body.style.overflow = 'hidden';
+    closeRef.current?.focus();
+    const onKeyDown = event => {
+      if (event.key === 'Escape') { setOpen(false); return; }
+      if (event.key !== 'Tab' || !drawerRef.current) return;
+      const focusables = [...drawerRef.current.querySelectorAll('a[href],button:not([disabled])')];
+      if (!focusables.length) return;
+      const first = focusables[0], last = focusables[focusables.length - 1];
+      if (event.shiftKey && document.activeElement === first) { event.preventDefault(); last.focus(); }
+      else if (!event.shiftKey && document.activeElement === last) { event.preventDefault(); first.focus(); }
+    };
+    document.addEventListener('keydown', onKeyDown);
+    return () => {
+      document.body.style.overflow = previousOverflow;
+      document.removeEventListener('keydown', onKeyDown);
+      toggleRef.current?.focus();
+    };
+  }, [open]);
+  return <>
+    <header className={`header swu-wing-header ${!atHome ? 'portal-header' : ''} ${scrolled ? 'is-scrolled' : ''}`}>
+      <div className="container header-inner swu-wing-header-inner">
+        <Brand inverted />
+        <div className="swu-wing-actions">
+          <a className="header-join swu-wing-join" href="/register">JOIN US <ArrowUpRight size={17} strokeWidth={2.5}/></a>
+          <button ref={toggleRef} className="swu-wing-trigger" type="button" aria-label="메뉴 열기" aria-expanded={open} aria-controls="swu-wing-panel" onClick={() => setOpen(true)}>
+            <span>MENU</span><Menu size={23}/>
+          </button>
+        </div>
+      </div>
+    </header>
+    {open && <div className="swu-wing-layer">
+      <button type="button" className="swu-wing-backdrop" aria-label="메뉴 닫기" onClick={() => setOpen(false)}/>
+      <nav className="swu-wing-panel" id="swu-wing-panel" aria-label="SWUFORCE 페이지 메뉴" ref={drawerRef}>
+        <div className="swu-wing-panel-head">
+          <div className="swu-wing-panel-brand"><img src="/swuforce-symbol.png" alt=""/><span>SWUFORCE<small>DIGITAL FORENSICS</small></span></div>
+          <button ref={closeRef} type="button" className="swu-wing-close" aria-label="메뉴 닫기" onClick={() => setOpen(false)}><X size={22}/></button>
+        </div>
+        <div className="swu-wing-panel-caption"><span>EXPLORE SWUFORCE</span><span>01 — 07</span></div>
+        <div className="swu-wing-links">
+          {links.map(({href,label,note,Icon},index) => {
+            const active = (href === '/' ? atHome : path === href || (href === '/board' && path.startsWith('/board/')));
+            return <a href={href} key={href} className={`swu-wing-link ${active ? 'is-active' : ''}`} aria-current={active ? 'page' : undefined} onClick={() => setOpen(false)}>
+              <span className="swu-wing-link-index">{String(index + 1).padStart(2,'0')}</span>
+              <Icon className="swu-wing-link-icon" size={21} strokeWidth={1.65}/>
+              <span className="swu-wing-link-text"><strong>{label}</strong><small>{note}</small></span>
+              <ArrowUpRight className="swu-wing-link-arrow" size={19}/>
+            </a>;
+          })}
+        </div>
+        <div className="swu-wing-bottom">
+          <a href="/register" className="swu-wing-bottom-join" onClick={() => setOpen(false)}><UserPlus size={19}/> JOIN US <ArrowUpRight size={18}/></a>
+          {profile?.can_moderate ? <a href="/admin" className="swu-wing-minor" onClick={() => setOpen(false)}>Admin <ArrowUpRight size={16}/></a> : !session ? <a href="/login" className="swu-wing-minor" onClick={() => setOpen(false)}>Log In <ArrowUpRight size={16}/></a> : null}
+          <span>CURIOUS MINDS. DIGITAL EVIDENCE.</span>
+        </div>
       </nav>
-      <a href="/recruit" className="header-join">JOIN US <ArrowUpRight size={15} strokeWidth={2.5} /></a>
-      <button className="menu-button" type="button" aria-label={open ? '메뉴 닫기' : '메뉴 열기'} aria-expanded={open} aria-controls="main-navigation" onClick={() => setOpen(value => !value)}>{open ? <X size={25} /> : <Menu size={25} />}</button>
-    </div>
-  </header>;
+    </div>}
+  </>;
 }
 
 function ForensicVisual() {
@@ -111,7 +163,7 @@ function Hero() {
         <div className="hero-eyebrow"><span className="hero-eyebrow-line"/> SEOUL WOMEN'S UNIVERSITY <span className="hero-eyebrow-divider">/</span> DIGITAL FORENSICS</div>
         <h1>흔적을 읽고,<br/><span>진실을 증명하다.</span></h1>
         <p className="hero-description">디지털 세상에 남겨진 단서를 탐구하는 사람들.<br/>우리는 함께 배우고, 분석하고, 발견한 것을 기록합니다.</p>
-        <div className="hero-actions"><a href="#about" className="button button-primary">SWUFORCE 알아보기 <ArrowUpRight size={18} /></a><a href="#work" className="button button-outline">프로젝트 살펴보기 <ArrowRight size={18} /></a></div>
+        <div className="hero-actions"><a href="/about" className="button button-primary">SWUFORCE 알아보기 <ArrowUpRight size={18} /></a><a href="/news" className="button button-outline">프로젝트 살펴보기 <ArrowRight size={18} /></a></div>
         <div className="hero-small-note"><span className="small-note-icon"><CircleDot size={14} /></span> SINCE 2020 <span className="note-divider"/> FROM CURIOSITY TO EVIDENCE</div>
       </div>
       <ForensicVisual />
@@ -154,7 +206,7 @@ function ProjectVisual({visual}) {
 }
 
 function Projects() {
-  return <section className="section projects-section" id="work"><div className="container"><div className="heading-spread"><SectionHeading num="04" eyebrow="SELECTED RECORDS" title={<>질문을 넘어,<br/>기록으로 남긴 도전.</>} subtitle="AI 이미지 출처 판별부터 클라우드 포렌식까지, 대표 프로젝트와 발표를 소개합니다." /><span className="year-mark">PROJECTS / HIGHLIGHTS</span></div><div className="project-grid">{experiences.map((e, i) => <article className="project-card" key={e.title}><ProjectVisual visual={e.visual}/><div className="project-content"><div className="project-meta"><span>{e.type}</span><span>{e.year}</span></div><div className="project-category">{e.tag}</div><h3>{e.title}</h3><p>{e.description}</p><div className="project-footnote"><ShieldCheck size={15}/>{e.footnote}</div></div></article>)}</div><div className="projects-bottom"><div><span className="tiny-arrow">↗</span><strong>다음 이야기는 우리가 만들어갑니다.</strong><p>새로운 연구와 활동 기록은 확인 후 차례로 추가할 수 있습니다.</p></div><a href="#join" className="text-link">함께할 기회 알아보기 <ArrowUpRight size={18}/></a></div></div></section>;
+  return <section className="section projects-section" id="work"><div className="container"><div className="heading-spread"><SectionHeading num="04" eyebrow="SELECTED RECORDS" title={<>질문을 넘어,<br/>기록으로 남긴 도전.</>} subtitle="AI 이미지 출처 판별부터 클라우드 포렌식까지, 대표 프로젝트와 발표를 소개합니다." /><span className="year-mark">PROJECTS / HIGHLIGHTS</span></div><div className="project-grid">{experiences.map((e, i) => <article className="project-card" key={e.title}><ProjectVisual visual={e.visual}/><div className="project-content"><div className="project-meta"><span>{e.type}</span><span>{e.year}</span></div><div className="project-category">{e.tag}</div><h3>{e.title}</h3><p>{e.description}</p><div className="project-footnote"><ShieldCheck size={15}/>{e.footnote}</div></div></article>)}</div><div className="projects-bottom"><div><span className="tiny-arrow">↗</span><strong>다음 이야기는 우리가 만들어갑니다.</strong><p>새로운 연구와 활동 기록은 확인 후 차례로 추가할 수 있습니다.</p></div><a href="/recruit" className="text-link">함께할 기회 알아보기 <ArrowUpRight size={18}/></a></div></div></section>;
 }
 
 function History() {
@@ -182,16 +234,37 @@ function Join() {
     site.contact.facebook && { label: 'Facebook', url: site.contact.facebook, icon: Globe },
     site.contact.notion && { label: 'Notion', url: site.contact.notion, icon: BookOpen },
   ].filter(Boolean);
-  return <section className="join-section" id="join"><div className="container join-inner"><div className="join-decoration" aria-hidden="true"><div className="decor-ring"/><div className="decor-ring"/><div className="decor-ring"/><div className="decor-cross">+</div></div><div className="join-copy"><div className="eyebrow"><span className="eyebrow-bar"/> 08 / JOIN SWUFORCE</div><h2>다음 단서를 찾을<br/><span>당신을 기다립니다.</span></h2><p>{site.recruiting.description}</p><div className="join-availability"><span className={site.recruiting.isOpen ? 'status-open' : 'status-closed'}/><span>{site.recruiting.isOpen ? `${site.recruiting.term || '신입 부원'} 모집 중` : '7.5기 마감 · 2027년 1학기 8기 모집 예정'}</span></div></div><div className="join-action">{site.recruiting.isOpen && site.contact.application ? <a className="button button-white" href={site.contact.application} target="_blank" rel="noopener noreferrer">지원하기 <ArrowUpRight size={19}/></a> : <a className="button button-white" href="/recruit">모집 안내 보기 <ArrowUpRight size={19}/></a>}{links.length ? <div className="join-links">{links.map(({label,url,icon:Icon}) => <a href={url} key={label} target={url.startsWith('mailto:') ? undefined : '_blank'} rel={url.startsWith('mailto:') ? undefined : 'noopener noreferrer'}><Icon size={17}/>{label}<ArrowUpRight size={14}/></a>)}</div> : <p className="join-contact-note">공식 연락처 및 SNS는 운영진 확인 후 등록됩니다.</p>}</div></div></section>;
+  return <section className="join-section" id="join"><div className="container join-inner"><div className="join-decoration" aria-hidden="true"><div className="decor-ring"/><div className="decor-ring"/><div className="decor-ring"/><div className="decor-cross">+</div></div><div className="join-copy"><div className="eyebrow"><span className="eyebrow-bar"/> 08 / JOIN SWUFORCE</div><h2>함께한 흔적을<br/><span>이곳에 남겨요.</span></h2><p>기존 SWUFORCE 학회원이라면 회원가입 후 기수와 활동 상태를 인증받고, 학회원 커뮤니티에서 만나요.</p><div className="join-availability"><span className={site.recruiting.isOpen ? 'status-open' : 'status-closed'}/><span>{site.recruiting.isOpen ? `${site.recruiting.term || '신입 부원'} 모집 중` : '7.5기 마감 · 2027년 1학기 8기 모집 예정'}</span></div></div><div className="join-action"><a className="button button-white" href="/register">JOIN US · 회원가입 <ArrowUpRight size={19}/></a><a className="swu-join-recruit-link" href="/recruit">신입 모집 안내 확인 <ArrowUpRight size={16}/></a>{links.length ? <div className="join-links">{links.map(({label,url,icon:Icon}) => <a href={url} key={label} target={url.startsWith('mailto:') ? undefined : '_blank'} rel={url.startsWith('mailto:') ? undefined : 'noopener noreferrer'}><Icon size={17}/>{label}<ArrowUpRight size={14}/></a>)}</div> : <p className="join-contact-note">공식 연락처 및 SNS는 운영진 확인 후 등록됩니다.</p>}</div></div></section>;
 }
 
 function Footer() {
   const now = new Date().getFullYear();
-  return <footer className="footer"><div className="container footer-top"><div><Brand inverted/><p>서울여자대학교 디지털포렌식 소학회<br/>Curiosity into Evidence.</p></div><div className="footer-right"><span>EXPLORE</span><a href={site.contact.notion} target="_blank" rel="noopener noreferrer">Official Notion ↗</a><a href="/#about">About</a><a href="/members">Members</a><a href="/officers">Leadership</a><a href="/board">Board</a><a href="/recruit">Recruit</a><a href="/#focus">What We Explore</a><a href="/#activities">Activities</a><a href="/#work">Projects</a><a href="/#resources">Archive</a><a href="/recruit">Join Us</a></div></div><div className="container footer-bottom"><span>© {now} SWUFORCE. All rights reserved.</span><span>MADE FOR THOSE WHO LOOK CLOSER. <MoveUpRight size={13}/></span></div></footer>;
+  return <footer className="footer"><div className="container footer-top"><div><Brand inverted/><p>서울여자대학교 디지털포렌식 소학회<br/>Curiosity into Evidence.</p></div><div className="footer-right"><span>EXPLORE</span><a href="/">Home</a><a href="/about">About</a><a href="/study">Study</a><a href="/news">News</a><a href="/board">Community</a><a href="/recruit">Recruit</a><a href="/me">My Page</a><a href="/members">Members</a><a href="/register">Join Us</a><a href={site.contact.notion} target="_blank" rel="noopener noreferrer">Official Notion ↗</a></div></div><div className="container footer-bottom"><span>© {now} SWUFORCE. All rights reserved.</span><span>MADE FOR THOSE WHO LOOK CLOSER. <MoveUpRight size={13}/></span></div></footer>;
 }
 
+function SubpageIntro({ index, name, description, detail }) {
+  return <section className="swu-subpage-intro" aria-labelledby="subpage-title"><div className="container swu-subpage-intro-inner">
+    <div><div className="swu-subpage-overline"><span className="live-indicator"/> SWUFORCE / {index}</div><h1 id="subpage-title">{name}<span>.</span></h1><p>{description}</p><span className="swu-subpage-detail">{detail}</span></div>
+    <div className="swu-subpage-mark" aria-hidden="true"><img src="/swuforce-symbol.png" alt=""/><span>LOOK CLOSER.</span></div>
+  </div></section>;
+}
+function AboutPage() {
+  return <main id="main-content" className="swu-subpage"><SubpageIntro index="01" name="About" description="SWUFORCE를 소개합니다." detail="WHO WE ARE / SINCE 2020"/><About/><History/>
+    <section className="swu-subpage-cta"><div className="container"><div><span>OUR PEOPLE</span><h2>함께하는 학회원</h2><p>동의한 학회원들의 기수와 활동 상태를 확인하세요.</p></div><a href="/members">Members <ArrowUpRight size={19}/></a></div></section><Faq/></main>;
+}
+function StudyPage() {
+  return <main id="main-content" className="swu-subpage"><SubpageIntro index="02" name="Study" description="함께 탐구하고 기록하는 디지털포렌식." detail="BASICS / WINDOWS / MOBILE"/><Focus/><Resources/>
+    <section className="swu-subpage-cta"><div className="container"><div><span>KEEP LEARNING</span><h2>스터디 소식이 궁금하다면</h2><p>새로운 학습 소식은 공식 채널을 통해 공유합니다.</p></div><a href={site.contact.velog} target="_blank" rel="noopener noreferrer">Velog <ArrowUpRight size={19}/></a></div></section></main>;
+}
+function NewsPage() {
+  return <main id="main-content" className="swu-subpage"><SubpageIntro index="03" name="News" description="SWUFORCE의 활동, 프로젝트, 도전 기록." detail="ACTIVITIES / PROJECTS / MILESTONES"/><Activities/><Projects/><History/></main>;
+}
 function App() {
-  return <PortalProvider><a className="skip-link" href="#main-content">본문으로 건너뛰기</a><Header/>{window.location.pathname === '/' ? <main id="main-content"><Hero/><About/><Focus/><Activities/><Projects/><History/><Resources/><Faq/><Join/></main> : <PortalRoutes/>}<Footer/></PortalProvider>;
+  const path = window.location.pathname.replace(/\/$/, '') || '/';
+  const pages = {
+    '/about': <AboutPage/>, '/study': <StudyPage/>, '/news': <NewsPage/>,
+  };
+  return <PortalProvider><a className="skip-link" href="#main-content">본문으로 건너뛰기</a><Header/>{path === '/' ? <main id="main-content"><Hero/><About/><Focus/><Activities/><Projects/><History/><Resources/><Faq/><Join/></main> : (pages[path] || <PortalRoutes/>)}<Footer/></PortalProvider>;
 }
 
 createRoot(document.getElementById('root')).render(<React.StrictMode><App/></React.StrictMode>);
