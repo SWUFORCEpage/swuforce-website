@@ -1,0 +1,46 @@
+.mentor-page{min-height:70vh;background:#fff;color:#1b2b3b}
+.mentor-intro{background:linear-gradient(105deg,#102239,#244565);padding:72px 0;color:#fff}
+.mentor-intro h1{font:750 clamp(39px,6vw,64px)/1.1 'Manrope','Noto Sans KR',sans-serif;margin:16px 0 15px;letter-spacing:-.045em}
+.mentor-intro p{font:400 15px/1.85 'Noto Sans KR',sans-serif;color:#d8e8f2;max-width:700px}
+.mentor-kicker{font:600 11px 'DM Mono',monospace;color:#b3d5ee;letter-spacing:.12em}
+.mentor-layout{padding:58px 0 95px}
+.mentor-section{margin:46px 0 0;padding-top:28px;border-top:1px solid #dce7f1}
+.mentor-head{display:flex;justify-content:space-between;align-items:flex-end;gap:28px;margin:0 0 24px}
+.mentor-head span{color:#5b8fb4;font:600 10px 'DM Mono',monospace;letter-spacing:.12em}
+.mentor-head h2,.mentor-request-panel h2{font:750 clamp(21px,3.4vw,31px)/1.4 'Noto Sans KR',sans-serif;letter-spacing:-.04em;margin:8px 0}
+.mentor-head p,.mentor-request-panel>p{font:13px/1.7 'Noto Sans KR',sans-serif;color:#6b8295}
+.mentor-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:15px}
+.mentor-card{border:1px solid #dce7f1;background:#f7fafc;padding:25px 23px;display:flex;flex-direction:column;gap:10px;min-height:244px}
+.mentor-card-top{display:flex;justify-content:space-between;gap:10px;font:600 11px 'Noto Sans KR',sans-serif;color:#437eac}
+.mentor-card-top small{color:#7b91a6}.mentor-card h3{font:750 21px 'Noto Sans KR',sans-serif;margin:7px 0 0}
+.mentor-card p{font:13px/1.7 'Noto Sans KR',sans-serif;color:#596f82;margin:0;white-space:pre-wrap;overflow-wrap:anywhere}
+.mentor-job{color:#305d82!important}
+.mentor-card button,.mentor-form>button,.mentor-actions button{border:0;background:#234d70;color:#fff;padding:12px 16px;align-self:flex-start;font:650 12px 'Noto Sans KR',sans-serif}
+.mentor-card button{margin-top:auto}.mentor-card button:hover,.mentor-form>button:hover,.mentor-actions button:hover{background:#336b96}
+.mentor-form{display:flex;flex-direction:column;gap:19px;margin-top:23px;max-width:860px}
+.mentor-form label{display:flex;flex-direction:column;gap:9px;font:600 13px/1.5 'Noto Sans KR',sans-serif;color:#253d51}
+.mentor-form input:not([type=checkbox]),.mentor-form textarea{width:100%;border:1px solid #bdcddd;border-radius:2px;padding:13px 14px;background:#fff;color:#193047;font:400 14px/1.65 'Noto Sans KR',sans-serif}
+.mentor-form input:focus,.mentor-form textarea:focus{outline:2px solid #7ab5dd;outline-offset:1px}
+.mentor-form-row{display:grid;grid-template-columns:1fr 1fr;gap:16px}
+.mentor-form fieldset{border:1px solid #d9e5ef;padding:22px;background:#f8fbfd;display:flex;flex-direction:column;gap:15px}
+.mentor-form legend{font:700 13px 'Noto Sans KR',sans-serif;padding:0 9px}
+.mentor-form fieldset>p{font:12px/1.85 'Noto Sans KR',sans-serif;color:#566f82;margin:0}
+.mentor-form .mentor-check{display:flex;flex-direction:row;align-items:flex-start;gap:9px;font:500 13px/1.65 'Noto Sans KR',sans-serif;color:#26465e}
+.mentor-check input{accent-color:#315e83;transform:translateY(3px);flex-shrink:0}
+.mentor-actions{display:flex;align-items:center;gap:12px;flex-wrap:wrap;margin-top:13px}
+.mentor-actions .mentor-quiet,.mentor-quiet{padding:10px 13px;border:1px solid #b9cfe0;background:#fff;color:#315675;font:600 12px 'Noto Sans KR',sans-serif}
+.mentor-actions .mentor-quiet:hover,.mentor-quiet:hover{background:#e9f2f8;color:#264660}
+.mentor-alert,.mentor-notice,.mentor-note,.mentor-empty{padding:20px 22px;background:#f5f9fc;border:1px solid #c9dbea;color:#234966;font:13px/1.8 'Noto Sans KR',sans-serif;margin:14px 0}
+.mentor-alert{border-color:#dca9a9;background:#fff8f8;color:#953c3c}.mentor-note a{display:inline-block;margin-top:10px;color:#265d89;text-decoration:underline}
+.mentor-muted{font:12px/1.85 'Noto Sans KR',sans-serif;color:#657e92;margin:10px 0}
+.mentor-history{display:flex;flex-direction:column;gap:14px}
+.mentor-history-card{padding:22px;border:1px solid #dbe5ef;background:#fff}
+.mentor-history-head{display:flex;align-items:center;justify-content:space-between;gap:12px}
+.mentor-history-head strong{font:700 17px 'Noto Sans KR',sans-serif}
+.mentor-history-head span{padding:5px 9px;background:#e5f2fb;color:#366783;font:600 11px 'Noto Sans KR',sans-serif}
+.mentor-history-card small{color:#71899c}.mentor-question,.mentor-response p{font:13px/1.85 'Noto Sans KR',sans-serif;white-space:pre-wrap;overflow-wrap:anywhere}
+.mentor-response{margin:18px 0;background:#eff6fa;padding:18px;border-left:3px solid #81adcd}
+.mentor-response b{color:#315e7a;font:700 12px 'Noto Sans KR',sans-serif}
+button:disabled{cursor:not-allowed;opacity:.55}
+@media(max-width:1000px){.mentor-grid{grid-template-columns:repeat(2,minmax(0,1fr))}}
+@media(max-width:650px){.mentor-grid,.mentor-form-row{grid-template-columns:1fr}.mentor-head{align-items:flex-start;flex-direction:column;gap:4px}.mentor-intro{padding:55px 0}.mentor-layout{padding:36px 0 65px}.mentor-card{min-height:auto}}

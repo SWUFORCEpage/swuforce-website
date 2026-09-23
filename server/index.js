@@ -11,6 +11,8 @@ import {
   canViewPost, validText, badges,
 } from './permissions.js';
 import { isContentPage, validatePageEntry } from './site-content.js';
+import { registerMentorRoutes } from './mentor-routes.js';
+import { publicPrivacyConfig, GUEST_RETENTION_DAYS, PRIVACY_NOTICE_VERSION } from './privacy-config.js';
 
 const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
 const {
@@ -28,6 +30,7 @@ if (Boolean(TURNSTILE_SITE_KEY) !== Boolean(TURNSTILE_SECRET_KEY)) {
 const supabase = createClient(SUPABASE_URL, SUPABASE_SECRET_KEY, {
   auth: { autoRefreshToken: false, persistSession: false },
 });
+const privacyConfig = publicPrivacyConfig(process.env);
 const app = express();
 app.disable('x-powered-by');
 app.set('trust proxy', 1);
@@ -122,10 +125,31 @@ const guestLimiter = rateLimit({ windowMs: 60 * 60 * 1000, limit: 5, standardHea
 const replyLimiter = rateLimit({ windowMs: 60 * 60 * 1000, limit: 40, standardHeaders: 'draft-7', legacyHeaders: false });
 
 app.get('/api/health', (_, res) => res.json({ ok: true }));
+app.get('/api/privacy/config', (_, res) => res.json(privacyConfig));
+const privacyAdminLimiter = rateLimit({ windowMs: 60*60*1000, limit: 5, standardHeaders: 'draft-7', legacyHeaders:false });
+const deleteAccountLimiter = rateLimit({ windowMs: 30*60*1000, limit: 3, standardHeaders: 'draft-7', legacyHeaders:false });
+app.get('/api/admin/privacy/status', route(async (req,res)=>{
+  await admin(req);
+  const {data,error}=await supabase.from('privacy_retention_runs')
+    .select('ran_at,expired_mentor_requests,deleted_mentor_requests,deleted_guest_posts')
+    .order('ran_at',{ascending:false}).limit(15);
+  required('정기 삭제 실행 내역을 읽지 못했습니다. 마이그레이션을 확인해 주세요.',error);
+  res.json({runs:data||[],privacyPublished:privacyConfig.published});
+}));
+app.post('/api/admin/privacy/run',privacyAdminLimiter,route(async (req,res)=>{
+  await admin(req);
+  const {data,error}=await supabase.rpc('run_swuforce_retention');
+  required('정기 삭제를 실행하지 못했습니다. 마이그레이션을 확인해 주세요.',error);
+  res.json({ok:true,counts:data});
+}));
 // Public site contents (published entries only); private editing is gated below.
 app.get('/api/content/:page', route(async (req, res) => {
   if (!isContentPage(req.params.page)) throw new HttpError(404, '페이지를 찾지 못했습니다.');
   if (req.params.page === 'me') await authenticated(req);
+  if (req.params.page === 'mentoring') {
+    const member = await authenticated(req);
+    if (!isConfirmed(member)) throw new HttpError(403, '승인된 학회원에게만 공개됩니다.');
+  }
   const { data, error } = await supabase.from('page_entries')
     .select('id,page,category,title,body,link_label,link_url,image_url,sort_order')
     .eq('page', req.params.page).eq('is_published', true)
@@ -174,11 +198,15 @@ app.delete('/api/admin/content/:id', route(async (req, res) => {
   res.json({ ok:true });
 }));
 
+registerMentorRoutes(app, { supabase, authenticated, route, HttpError, required, privacyPublished: privacyConfig.published });
+
 app.get('/api/config', (_, res) => res.json({
   supabaseUrl: SUPABASE_URL,
   publishableKey: SUPABASE_PUBLISHABLE_KEY,
   turnstileSiteKey: TURNSTILE_SITE_KEY || null,
-  guestPostingAllowed,
+  guestPostingAllowed: guestPostingAllowed && privacyConfig.published,
+  privacyPublished: privacyConfig.published,
+  privacyNoticeVersion: privacyConfig.noticeVersion,
 }));
 app.get('/api/me', route(async (req, res) => {
   const profile = await actor(req);
@@ -190,6 +218,33 @@ app.get('/api/me', route(async (req, res) => {
     badges: badges(profile), can_reply: canReply(profile),
     can_moderate: canModerate(profile), can_administer: isAdministrator(profile),
   } });
+}));
+app.delete('/api/me/account', deleteAccountLimiter, route(async (req,res)=>{
+  const person=await authenticated(req);
+  if(req.body?.confirmation!=='회원탈퇴' || typeof req.body?.password!=='string' || req.body.password.length<8)
+    throw new HttpError(400,'비밀번호 및 탈퇴 확인 문구를 입력해 주세요.');
+  // A retention hold requires a separate review before destroying a member account.
+  const {count:heldCount,error:heldError}=await supabase.from('board_posts')
+    .select('id',{head:true,count:'exact'}).eq('author_id',person.id).eq('retention_hold',true);
+  required('법정 보존 대상 게시글을 확인하지 못했습니다.',heldError);
+  if(heldCount)throw new HttpError(409,'법정 보존 중인 본인 게시글이 있어 운영진과 별도 탈퇴 절차가 필요합니다.');
+  if(person.site_admin){
+    const {count,error:ce}=await supabase.from('profiles').select('id',{head:true,count:'exact'})
+      .eq('site_admin',true).eq('is_verified',true).eq('membership_status','active').neq('id',person.id);
+    required('관리자 인수인계 상태를 확인하지 못했습니다.',ce);
+    if(!count)throw new HttpError(409,'마지막 사이트 관리자는 후임 관리자를 지정한 후 탈퇴할 수 있습니다.');
+  }
+  const {data:userResult,error:userError}=await supabase.auth.admin.getUserById(person.id);
+  if(userError||!userResult?.user?.email)throw new HttpError(503,'계정 이메일을 확인하지 못했습니다.');
+  const verifier=createClient(SUPABASE_URL,SUPABASE_PUBLISHABLE_KEY,
+    {auth:{persistSession:false,autoRefreshToken:false}});
+  const {data:verified,error:verifyError}=await verifier.auth.signInWithPassword({
+    email:userResult.user.email,password:req.body.password,
+  });
+  if(verifyError||verified?.user?.id!==person.id)throw new HttpError(403,'비밀번호가 일치하지 않습니다.');
+  const {error:deleteError}=await supabase.auth.admin.deleteUser(person.id);
+  required('회원탈퇴를 완료하지 못했습니다. 운영진에게 문의해 주세요.',deleteError);
+  res.json({ok:true});
 }));
 app.patch('/api/me', route(async (req, res) => {
   const profile = await authenticated(req);
@@ -280,6 +335,9 @@ app.post('/api/board', guestLimiter, route(async (req, res) => {
   let token = null;
   let guestName = null;
   if (!profile) {
+    if (!privacyConfig.published) throw new HttpError(503,'개인정보 처리방침 확인 후 비회원 글쓰기를 재개합니다.');
+    if(req.body.privacy_agreed!==true || req.body.privacy_notice_version!==PRIVACY_NOTICE_VERSION)
+      throw new HttpError(400,'개인정보 수집·이용 안내를 확인해 주세요.');
     guestName = req.body.guest_name;
     if (!validText(guestName, 2, 30)) throw new HttpError(400, '비회원 작성자 이름을 입력해 주세요(2~30자).');
     await verifyTurnstile(req.body.turnstile_token, req.ip);
@@ -290,6 +348,9 @@ app.post('/api/board', guestLimiter, route(async (req, res) => {
     author_id: profile?.id || null,
     guest_name: guestName?.trim() || null,
     guest_token_hash: token ? sha256(token) : null,
+    guest_delete_at: token ? new Date(Date.now()+GUEST_RETENTION_DAYS*86400000).toISOString() : null,
+    privacy_notice_version:token?PRIVACY_NOTICE_VERSION:null,
+    privacy_ack_at:token?new Date().toISOString():null,
   }).select('id').single();
   required('게시글을 저장하지 못했습니다.', error);
   res.status(201).json({ id: data.id, guestAccessToken: token });
@@ -318,9 +379,24 @@ app.get('/api/board/:id', route(async (req, res) => {
   res.json({ post: { ...authors[0], guest_token_hash: undefined,
     can_moderate: canModerate(profile),
     can_reply: canReply(profile),
+    can_delete: Boolean((post.author_id && profile?.id===post.author_id) || (!post.author_id && guestHash)),
   }, replies: (replies || []).map(({ officer_id, ...reply }) => ({ ...reply,
     author_name: responderMap.get(officer_id) || 'SWUFORCE 운영진',
   })) });
+}));
+app.delete('/api/board/:id',route(async (req,res)=>{
+  const profile=await actor(req);
+  const {data:post,error}=await supabase.from('board_posts')
+    .select('id,author_id,guest_token_hash,retention_hold').eq('id',req.params.id).maybeSingle();
+  required('게시글을 확인하지 못했습니다.',error);
+  if(!post)throw new HttpError(404,'게시글을 찾지 못했습니다.');
+  if(post.retention_hold)throw new HttpError(409,'법정 보존 사유로 삭제가 제한된 글입니다. 운영진에게 문의해 주세요.');
+  const hasAccess=(post.author_id && profile?.id===post.author_id)
+    || (!post.author_id && checkGuestToken(post,req.get('x-guest-access-token')));
+  if(!hasAccess)throw new HttpError(404,'게시글을 찾지 못했습니다.');
+  const {error:removeError}=await supabase.from('board_posts').delete().eq('id',post.id);
+  required('게시글을 삭제하지 못했습니다.',removeError);
+  res.json({ok:true});
 }));
 app.post('/api/board/:id/replies', replyLimiter, route(async (req, res) => {
   const profile = await authenticated(req);

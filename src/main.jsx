@@ -38,6 +38,7 @@ function Header() {
     { href: '/study', label: 'Study', note: '스터디 · 학습 자료' },
     { href: '/news', label: 'News', note: '활동 · 프로젝트' },
     { href: '/board', label: 'Community', note: '공개 · 비공개 문의' },
+    { href: '/mentoring', label: 'Mentoring', note: '졸업 학회원에게 조언 요청' },
     { href: '/recruit', label: 'Recruit', note: '신입 모집 안내' },
     { href: session ? '/me' : '/login', label: 'My Page', note: session ? '내 프로필 · 배지' : '로그인 후 이용' },
   ];
@@ -82,7 +83,7 @@ function Header() {
           <div className="swu-wing-panel-brand"><img src="/swuforce-symbol.png" alt=""/><span>SWUFORCE<small>DIGITAL FORENSICS</small></span></div>
           <button ref={closeRef} className="swu-wing-close" type="button" aria-label="메뉴 닫기" onClick={() => setOpen(false)}><X size={20}/></button>
         </div>
-        <div className="swu-wing-panel-caption"><span>EXPLORE</span><span>01 / 07</span></div>
+        <div className="swu-wing-panel-caption"><span>EXPLORE</span><span>01 / 08</span></div>
         <div className="swu-wing-links">
           {links.map(({href,label,note},i) => {
             const selected = href === '/' ? path === '/' : path === href || (href === '/board' && path.startsWith('/board/')) || (href === '/me' && path === '/login');
@@ -228,7 +229,7 @@ function Faq() {
 
 function Footer() {
   const year = new Date().getFullYear();
-  return <footer className="footer swu-compact-footer"><div className="container footer-top"><div><Brand inverted/><p>서울여자대학교 정보보호학과 · 디지털포렌식 소학회</p></div><div className="footer-right"><span>EXPLORE</span><a href="/about">About</a><a href="/study">Study</a><a href="/news">News</a><a href="/board">Community</a><a href="/recruit">Recruit</a><a href="/me">My Page</a><a href="/register">Join Us</a><a href={site.contact.notion} target="_blank" rel="noopener noreferrer">Notion ↗</a><a href={site.contact.instagram} target="_blank" rel="noopener noreferrer">Instagram ↗</a></div></div><div className="container footer-bottom"><span>© {year} SWUFORCE. All rights reserved.</span><span>SWUFORCE · DIGITAL FORENSICS</span></div></footer>;
+  return <footer className="footer swu-compact-footer"><div className="container footer-top"><div><Brand inverted/><p>서울여자대학교 정보보호학과 · 디지털포렌식 소학회</p></div><div className="footer-right"><span>EXPLORE</span><a href="/about">About</a><a href="/study">Study</a><a href="/news">News</a><a href="/board">Community</a><a href="/mentoring">Mentoring</a><a href="/recruit">Recruit</a><a href="/me">My Page</a><a href="/register">Join Us</a><a href="/privacy">Privacy Policy</a><a href={site.contact.notion} target="_blank" rel="noopener noreferrer">Notion ↗</a><a href={site.contact.instagram} target="_blank" rel="noopener noreferrer">Instagram ↗</a></div></div><div className="container footer-bottom"><span>© {year} SWUFORCE. All rights reserved.</span><span>SWUFORCE · DIGITAL FORENSICS</span></div></footer>;
 }
 
 function SubpageIntro({ index, name, description, detail }) {

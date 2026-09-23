@@ -1,5 +1,5 @@
 /** Page editor validation: only server-side authenticated site administrators may write. */
-export const CONTENT_PAGES = Object.freeze(['home', 'about', 'study', 'news', 'community', 'members', 'recruit', 'me']);
+export const CONTENT_PAGES = Object.freeze(['home', 'about', 'study', 'news', 'community', 'members', 'recruit', 'me', 'mentoring']);
 export function isContentPage(page) {
   return typeof page === 'string' && CONTENT_PAGES.includes(page);
 }

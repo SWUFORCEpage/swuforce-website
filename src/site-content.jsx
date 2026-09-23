@@ -2,7 +2,7 @@ import React, { useEffect, useState } from 'react';
 
 export const CONTENT_PAGE_NAMES = {
   home:'Home', about:'About', study:'Study', news:'News',
-  community:'Community', members:'Members', recruit:'Recruit', me:'My Page',
+  community:'Community', members:'Members', recruit:'Recruit', me:'My Page', mentoring:'Mentoring',
 };
 const emptyForm = page => ({ page, category:'', title:'', body:'', link_label:'', link_url:'', image_url:'', sort_order:100, is_published:false });
 function externalHttps(value) {

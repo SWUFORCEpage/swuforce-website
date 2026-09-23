@@ -7,6 +7,9 @@ import {
   Shield, ShieldCheck, UserRound, UsersRound,
 } from 'lucide-react';
 import { PageContent, AdminPageContent } from './site-content.jsx';
+import { MentoringPage } from './mentoring.jsx';
+import { PrivacyPage } from './privacy.jsx';
+import { PrivacyAdminPanel } from './privacy-admin.jsx';
 
 const AuthContext = createContext(null);
 const fmt = value => value ? new Date(value).toLocaleDateString('ko-KR') : '';
@@ -184,12 +187,14 @@ export function BoardCompose() {
   const [result, setResult] = useState(null);
   const [error, setError] = useState('');
   const [busy, setBusy] = useState(false);
+  const [privacyAgree,setPrivacyAgree] = useState(false);
   const guest = !session;
   async function submit(event) {
     event.preventDefault(); setError(''); setBusy(true);
     try {
       const saved = await request('/api/board', { method: 'POST', session,
-        body: JSON.stringify({ title, body, visibility, guest_name: guestName, turnstile_token: turnstileToken }),
+        body: JSON.stringify({ title, body, visibility, guest_name: guestName, turnstile_token: turnstileToken,
+          privacy_agreed:guest?privacyAgree:undefined, privacy_notice_version:guest?config?.privacyNoticeVersion:undefined }),
       });
       setResult(saved);
     } catch (e) { setError(e.message); window.turnstile?.reset(); setTurnstileToken(''); }
@@ -198,7 +203,7 @@ export function BoardCompose() {
   const url = result && `${window.location.origin}/board/${result.id}${result.guestAccessToken ? `#access=${encodeURIComponent(result.guestAccessToken)}` : ''}`;
   return <Page kicker="COMMUNITY / WRITE" title="문의 작성" description="학회 활동, 신입 모집, 협업 등 궁금한 내용을 남겨 주세요." narrow>
     {result ? <div className="portal-card submit-success"><CheckCircle2 size={38}/><h2>게시글이 등록되었습니다.</h2>
-      {result.guestAccessToken && <><p>비회원 작성자는 아래 비밀 링크로 본인의 비공개 글을 다시 읽을 수 있습니다. 링크를 잃어버리면 복구할 수 없습니다.</p><div className="secret-link">{url}</div><button className="portal-button" onClick={() => navigator.clipboard.writeText(url)}>비밀 링크 복사</button></>}
+      {result.guestAccessToken && <><p>비회원은 아래 비밀 링크로 본인의 글을 열람·삭제할 수 있습니다. 링크를 잃어버리면 복구할 수 없습니다. 글은 등록일부터 180일 후 자동 삭제됩니다.</p><div className="secret-link">{url}</div><button className="portal-button" onClick={() => navigator.clipboard.writeText(url)}>비밀 링크 복사</button></>}
       <a className="portal-button" href={`/board/${result.id}${result.guestAccessToken ? `#access=${result.guestAccessToken}` : ''}`}>게시글 보기 <ArrowRight size={16}/></a>
     </div> : <form className="portal-card portal-form" onSubmit={submit}>
       <Alert message={error}/>
@@ -207,9 +212,11 @@ export function BoardCompose() {
       <label>본문<textarea required minLength={5} maxLength={5000} rows={9} value={body} onChange={e => setBody(e.target.value)} placeholder="문의 내용을 자세히 적어 주세요. 공개 글에 연락처 등 개인정보를 남기지 마세요."/></label>
       <fieldset className="visibility-choices"><legend>공개 범위</legend><label><input type="radio" name="visibility" checked={visibility === 'public'} onChange={() => setVisibility('public')}/><Eye size={18}/> 공개 글 <small>모든 방문자가 읽을 수 있습니다.</small></label>
         <label><input type="radio" name="visibility" checked={visibility === 'private'} onChange={() => setVisibility('private')}/><EyeOff size={18}/> 비공개 글 <small>작성자와 현재 운영진만 읽을 수 있습니다.</small></label></fieldset>
+      {guest&&<div className="privacy-opt-in-note"><p>비회원 문의: 닉네임·제목·본문·접근 토큰의 해시를 처리하며, 새로 등록한 글은 180일 후 삭제합니다. 공개 글은 누구나 볼 수 있습니다. <a href="/privacy" target="_blank" rel="noopener noreferrer">개인정보처리방침 보기</a></p>
+        <label><input type="checkbox" checked={privacyAgree} onChange={e=>setPrivacyAgree(e.target.checked)}/> [필수] 비회원 글쓰기 개인정보 수집·이용을 확인했습니다.</label></div>}
       {guest && !config?.guestPostingAllowed && <Alert message="비회원 글쓰기는 자동 작성 방지 설정이 완료되면 열립니다. 지금은 로그인 후 작성할 수 있습니다."/>}
       {guest && config?.turnstileSiteKey && <Turnstile sitekey={config.turnstileSiteKey} onToken={setTurnstileToken}/>}
-      <div className="form-actions"><a href="/board">취소</a><button className="portal-button" type="submit" disabled={busy || (guest && (!config?.guestPostingAllowed || (config?.turnstileSiteKey && !turnstileToken)))}><Send size={17}/>{busy ? '등록 중…' : '등록하기'}</button></div>
+      <div className="form-actions"><a href="/board">취소</a><button className="portal-button" type="submit" disabled={busy || (guest && (!privacyAgree || !config?.guestPostingAllowed || (config?.turnstileSiteKey && !turnstileToken)))}><Send size={17}/>{busy ? '등록 중…' : '등록하기'}</button></div>
     </form>}
   </Page>;
 }
@@ -225,6 +232,12 @@ export function BoardDetail({ id }) {
     catch (e) { setError(e.message); }
   };
   useEffect(() => { if (ready) load(); }, [id, ready, session?.access_token]);
+  async function deletePost(){
+    if(!window.confirm('게시글과 답변을 삭제하시겠습니까? 이 작업은 되돌릴 수 없습니다.'))return;
+    setBusy(true);setError('');
+    try{await request(`/api/board/${encodeURIComponent(id)}`,{method:'DELETE',session,guestToken:token});window.location.href='/board';}
+    catch(e){setError(e.message);}finally{setBusy(false);}
+  }
   async function send(event) {
     event.preventDefault(); setBusy(true);
     try { await request(`/api/board/${id}/replies`, { method: 'POST', session, body: JSON.stringify({ body: reply }) }); setReply(''); await load(); }
@@ -235,7 +248,7 @@ export function BoardDetail({ id }) {
     <p><a className="text-back" href="/board"><ArrowLeft size={16}/> 게시판으로 돌아가기</a></p>
     {error && <Alert message={error}/>}
     {data?.post && <><article className="portal-card"><div className="post-meta"><Badge type={data.post.visibility === 'private' ? 'slate' : 'blue'}>{data.post.visibility === 'private' ? '비공개' : '공개'}</Badge><span>{fmt(data.post.created_at)}</span></div>
-      <h2>{data.post.title}</h2><p className="muted">작성자: {data.post.author_name}</p><div className="post-body">{data.post.body}</div>
+      <h2>{data.post.title}</h2><p className="muted">작성자: {data.post.author_name}</p><div className="post-body">{data.post.body}</div>{data.post.can_delete&&<button className="portal-outline" onClick={deletePost} disabled={busy}>게시글 및 답변 삭제</button>}
     </article>
     <section className="portal-card"><h2>운영진 답변 {data.replies?.length || 0}개</h2>
       {data.replies?.length ? data.replies.map(item => <div className="reply-block" key={item.id}><div><Badge type="blue">운영진 답변</Badge><strong>{item.author_name}</strong><small>{fmt(item.created_at)}</small></div><p className="post-body">{item.body}</p></div>) : <p className="muted">아직 등록된 답변이 없습니다.</p>}
@@ -265,7 +278,7 @@ export function Recruit() {
 }
 
 export function AuthPage({ mode }) {
-  const { client, session, ready, error: configError } = useAuth();
+  const { client, session, config, ready, error: configError } = useAuth();
   const [email, setEmail] = useState(''); const [password, setPassword] = useState('');
   const [name, setName] = useState(''); const [cohort, setCohort] = useState('');
   const [requested, setRequested] = useState('active'); const [agree, setAgree] = useState(false);
@@ -277,11 +290,12 @@ export function AuthPage({ mode }) {
     setBusy(true); setError(''); setMessage('');
     try {
       if (mode === 'register') {
-        if (!agree) throw new Error('필수 개인정보 수집 및 이용에 동의해 주세요.');
+        if (!agree || !config?.privacyPublished) throw new Error('개인정보처리방침이 확정된 후 회원가입할 수 있습니다.');
         if (!/^([1-9]\d?)(\.5)?$/.test(cohort)) throw new Error('기수는 1, 7, 7.5와 같은 형식으로 입력해 주세요.');
         if (password.length < 8) throw new Error('비밀번호는 8자 이상 입력해 주세요.');
         const { data, error: e } = await client.auth.signUp({ email, password,
-          options: { data: { display_name: name.trim(), cohort, requested_status: requested },
+          options: { data: { display_name: name.trim(), cohort, requested_status: requested,
+            privacy_agreed:true, privacy_notice_version:config.privacyNoticeVersion },
             emailRedirectTo: `${window.location.origin}/login` },
         });
         if (e) throw e;
@@ -309,12 +323,12 @@ export function AuthPage({ mode }) {
       {!ready && <p className="muted">인증 서비스 연결 중…</p>}
       {mode === 'register' && <><label>홈페이지 표시 이름 / 닉네임<input required minLength={2} maxLength={32} value={name} onChange={e => setName(e.target.value)} placeholder="2~32자"/></label><label>활동 기수<input required value={cohort} onChange={e => setCohort(e.target.value)} placeholder="예: 7.5" inputMode="decimal"/></label>
         <label>신청할 활동 상태<select value={requested} onChange={e => setRequested(e.target.value)}><option value="active">현재 활동 중</option><option value="alumni">졸업 학회원</option></select></label>
-        <div className="privacy-box"><p><strong>최소 수집 항목 및 이용 목적</strong></p><p>이메일(인증·계정 복구), 비밀번호(Supabase 인증 서비스에서 관리), 표시 이름·활동 기수·신청 활동 상태(회원 확인 및 배지 발급)를 사용합니다. 학회원 여부와 활동 상태는 운영진 확인 후 반영됩니다. 명단 공개는 가입 후 별도 동의를 받아요.</p><label className="inline-check"><input type="checkbox" checked={agree} onChange={e => setAgree(e.target.checked)}/> 위 내용을 확인했고 개인정보 수집·이용에 동의합니다. (필수)</label></div>
+        <div className="privacy-box"><p><strong>회원가입 개인정보 안내</strong></p><p>필수: 이메일(인증·계정 복구), 비밀번호(인증 서비스에서 관리), 닉네임·활동 기수·신청 상태(회원 확인). 회원 탈퇴 시 계정 및 연결된 콘텐츠를 삭제합니다. 명단 공개는 별도 선택입니다.</p><p><a href="/privacy" target="_blank" rel="noopener noreferrer">개인정보처리방침 전문 보기 ↗</a></p>{!config?.privacyPublished&&<p role="alert">개인정보처리방침 최종 확인 중으로 신규 가입이 잠시 제한됩니다.</p>}<label className="inline-check"><input type="checkbox" checked={agree} onChange={e => setAgree(e.target.checked)}/> [필수] 개인정보 수집·이용 및 처리방침을 확인했습니다.</label></div>
       </>}
       {mode !== 'reset' && <label>이메일<input required type="email" autoComplete="email" value={email} onChange={e => setEmail(e.target.value)} placeholder="이메일 주소"/></label>}
       {!['recover'].includes(mode) && <label>{mode === 'reset' ? '새 비밀번호' : '비밀번호'}<input required type="password" minLength={8} autoComplete={mode === 'login' ? 'current-password' : 'new-password'} value={password} onChange={e => setPassword(e.target.value)} placeholder="8자 이상"/></label>}
       {mode === 'reset' && !session && <p className="muted">메일로 받은 재설정 링크를 열어 이 페이지로 들어오세요.</p>}
-      <button className="portal-button" type="submit" disabled={busy || !client || (mode === 'reset' && !session)}>{busy ? '처리 중…' : label} <ArrowRight size={16}/></button>
+      <button className="portal-button" type="submit" disabled={busy || !client || (mode === 'reset' && !session) || (mode === 'register' && !config?.privacyPublished)}>{busy ? '처리 중…' : label} <ArrowRight size={16}/></button>
       <div className="auth-options">{mode === 'login' ? <><a href="/register">학회원 가입</a><a href="/recover-password">비밀번호 찾기</a></> : <a href="/login">로그인으로 돌아가기</a>}</div>
     </form>
   </Page>;
@@ -323,6 +337,17 @@ export function MyPage() {
   const { profile, session, client, refreshProfile, ready } = useAuth();
   const [error, setError] = useState(''); const [message, setMessage] = useState('');
   const [busy, setBusy] = useState(false);
+  const [deletePassword,setDeletePassword] = useState('');
+  const [deletePhrase,setDeletePhrase] = useState('');
+  const [deleting,setDeleting] = useState(false);
+  async function deleteAccount(event){
+    event.preventDefault();
+    if(!window.confirm('회원 정보 및 본인이 작성한 글·멘토링 기록이 삭제됩니다. 계속하시겠습니까?'))return;
+    setDeleting(true);setError('');
+    try {await request('/api/me/account',{method:'DELETE',session,body:JSON.stringify({password:deletePassword,confirmation:deletePhrase})});
+      await client.auth.signOut();window.location.href='/';
+    }catch(e){setError(e.message);}finally{setDeleting(false);}
+  }
   async function changeOptIn(event) {
     setBusy(true); setError(''); setMessage('');
     try { await request('/api/me', { method: 'PATCH', session,
@@ -341,6 +366,12 @@ export function MyPage() {
         <label className="inline-check opt-in"><input disabled={busy} type="checkbox" checked={Boolean(profile.public_opt_in)} onChange={changeOptIn}/> 공개 명단에 내 정보 표시하기</label>
       </div>
       <PageContent page="me" title="학회원 안내" session={session} embedded/>
+      <details className="privacy-danger"><summary>회원 탈퇴 및 개인정보 삭제</summary>
+        <p>탈퇴하면 로그인 정보와 승인된 회원 명단, 본인이 작성한 게시글·운영진 답변·멘토링 기록이 삭제됩니다. 마지막 사이트 관리자는 먼저 후임 관리자를 지정해야 합니다.</p>
+        <form onSubmit={deleteAccount}><label>현재 비밀번호<input type="password" required minLength={8} value={deletePassword} onChange={e=>setDeletePassword(e.target.value)} autoComplete="current-password"/></label>
+        <label>확인 문구 '회원탈퇴' 입력<input required value={deletePhrase} onChange={e=>setDeletePhrase(e.target.value)}/></label>
+        <button type="submit" disabled={deleting||deletePhrase!=='회원탈퇴'||deletePassword.length<8}>{deleting?'탈퇴 처리 중…':'회원 탈퇴'}</button></form>
+      </details>
       <div className="portal-actions">{profile.can_moderate && <a href="/admin" className="portal-button"><Settings2 size={16}/> 운영진 관리</a>}<button className="portal-outline" onClick={signOut}><LogOut size={16}/> 로그아웃</button></div>
     </>}
   </Page>;
@@ -441,9 +472,10 @@ export function Admin() {
   if (!profile?.can_moderate) return <Page kicker="MANAGEMENT" title="Admin" description="현재 운영진 및 승인된 사이트 관리자 전용 페이지입니다."><div className="portal-card"><p>이 페이지에 접근할 수 없습니다.</p><a className="portal-button" href="/login">로그인하기</a></div></Page>;
   return <Page kicker="MANAGEMENT" title="Admin" description="게시판, 학회원 및 홈페이지 콘텐츠를 관리합니다.">
     <div className="filter-tabs"><button className={tab === 'posts' ? 'selected' : ''} onClick={() => setTab('posts')}>게시판 관리</button>
-      {profile.can_administer && <><button className={tab === 'content' ? 'selected' : ''} onClick={() => setTab('content')}>페이지 콘텐츠</button><button className={tab === 'members' ? 'selected' : ''} onClick={() => setTab('members')}>학회원 관리</button><button className={tab === 'terms' ? 'selected' : ''} onClick={() => setTab('terms')}>역대 운영진</button></>}</div>
+      {profile.can_administer && <><button className={tab === 'content' ? 'selected' : ''} onClick={() => setTab('content')}>페이지 콘텐츠</button><button className={tab === 'privacy' ? 'selected' : ''} onClick={() => setTab('privacy')}>개인정보·삭제 내역</button><button className={tab === 'members' ? 'selected' : ''} onClick={() => setTab('members')}>학회원 관리</button><button className={tab === 'terms' ? 'selected' : ''} onClick={() => setTab('terms')}>역대 운영진</button></>}</div>
     {tab === 'posts' && <AdminPosts session={session}/>}
     {tab === 'content' && profile.can_administer && <AdminPageContent session={session}/>}
+    {tab === 'privacy' && profile.can_administer && <PrivacyAdminPanel session={session}/>}
     {tab === 'members' && profile.can_administer && <AdminMembers session={session} ownId={profile.id}/>}
     {tab === 'terms' && profile.can_administer && <AdminTerms session={session}/>}
     <div className="portal-info"><ShieldCheck size={21}/><p>회원·운영진 권한은 서버에서 매 요청마다 검증합니다. 운영진 표시만으로 관리자 권한이 자동 발급되지 않습니다.</p></div>
@@ -453,7 +485,7 @@ export function PortalRoutes() {
   const path = window.location.pathname.replace(/\/$/, '') || '/';
   const routes = {
     '/board': <Board/>, '/board/new': <BoardCompose/>,
-    '/members': <Members/>, '/recruit': <Recruit/>,
+    '/members': <Members/>, '/recruit': <Recruit/>, '/mentoring': <MentoringPage/>, '/privacy': <PrivacyPage/>,
     '/login': <AuthPage mode="login"/>, '/register': <AuthPage mode="register"/>,
     '/recover-password': <AuthPage mode="recover"/>, '/reset-password': <AuthPage mode="reset"/>,
     '/me': <MyPage/>, '/admin': <Admin/>,
