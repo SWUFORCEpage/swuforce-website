@@ -1,7 +1,29 @@
+<head>
+  <meta charset="UTF-8" />
+
+  <!-- Google Search Console -->
+  <meta name="google-site-verification"
+        content="A77plH4cHa-XtVb4JZUBOlbpRRTJbh_3AILfJ2NRsaA" />
+
+  <title>
+    SWUFORCE | 서울여자대학교 디지털포렌식 소학회
+  </title>
+</head>
+
+# Dependencies
 node_modules/
+
+# Build
 dist/
+
+# Environment variables
 .env
 .env.*
 !.env.example
-.DS_Store
+
+# Logs
 *.log
+
+# Python
+__pycache__/
+.venv/
