@@ -10,6 +10,7 @@ import {
   isConfirmed, isCurrentExecutive, isAdministrator, canModerate, canReply,
   canViewPost, validText, badges,
 } from './permissions.js';
+import { isContentPage, validatePageEntry } from './site-content.js';
 
 const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
 const {
@@ -121,6 +122,58 @@ const guestLimiter = rateLimit({ windowMs: 60 * 60 * 1000, limit: 5, standardHea
 const replyLimiter = rateLimit({ windowMs: 60 * 60 * 1000, limit: 40, standardHeaders: 'draft-7', legacyHeaders: false });
 
 app.get('/api/health', (_, res) => res.json({ ok: true }));
+// Public site contents (published entries only); private editing is gated below.
+app.get('/api/content/:page', route(async (req, res) => {
+  if (!isContentPage(req.params.page)) throw new HttpError(404, '페이지를 찾지 못했습니다.');
+  if (req.params.page === 'me') await authenticated(req);
+  const { data, error } = await supabase.from('page_entries')
+    .select('id,page,category,title,body,link_label,link_url,image_url,sort_order')
+    .eq('page', req.params.page).eq('is_published', true)
+    .order('sort_order', { ascending:true }).order('created_at', { ascending:false }).limit(60);
+  required('페이지 정보를 불러올 수 없습니다. 데이터베이스 마이그레이션을 확인해 주세요.', error);
+  res.json({ entries: data || [] });
+}));
+app.get('/api/admin/content/:page', route(async (req, res) => {
+  await admin(req);
+  if (!isContentPage(req.params.page)) throw new HttpError(404, '페이지를 찾지 못했습니다.');
+  const { data, error } = await supabase.from('page_entries').select('*')
+    .eq('page', req.params.page).order('sort_order', { ascending:true })
+    .order('created_at', { ascending:false }).limit(200);
+  required('페이지 항목을 불러올 수 없습니다. 데이터베이스 마이그레이션을 확인해 주세요.', error);
+  res.json({ entries: data || [] });
+}));
+app.post('/api/admin/content', route(async (req, res) => {
+  const operator = await admin(req);
+  const item = validatePageEntry(req.body);
+  if (!item) throw new HttpError(400, '페이지, 제목, 본문, HTTPS 링크, 정렬 및 공개 설정을 확인해 주세요.');
+  const { data, error } = await supabase.from('page_entries')
+    .insert({ ...item, created_by:operator.id, updated_by:operator.id })
+    .select('id,page').single();
+  required('페이지 항목을 추가하지 못했습니다.', error);
+  res.status(201).json(data);
+}));
+app.patch('/api/admin/content/:id', route(async (req, res) => {
+  const operator = await admin(req);
+  if (!/^[0-9a-f-]{36}$/i.test(req.params.id)) throw new HttpError(400, '항목 ID가 올바르지 않습니다.');
+  const item = validatePageEntry(req.body);
+  if (!item) throw new HttpError(400, '페이지, 제목, 본문, HTTPS 링크, 정렬 및 공개 설정을 확인해 주세요.');
+  const { data, error } = await supabase.from('page_entries')
+    .update({ ...item, updated_by:operator.id, updated_at:new Date().toISOString() })
+    .eq('id', req.params.id).select('id,page').maybeSingle();
+  required('페이지 항목을 수정하지 못했습니다.', error);
+  if (!data) throw new HttpError(404, '항목을 찾지 못했습니다.');
+  res.json(data);
+}));
+app.delete('/api/admin/content/:id', route(async (req, res) => {
+  await admin(req);
+  if (!/^[0-9a-f-]{36}$/i.test(req.params.id)) throw new HttpError(400, '항목 ID가 올바르지 않습니다.');
+  const { data, error } = await supabase.from('page_entries')
+    .delete().eq('id', req.params.id).select('id').maybeSingle();
+  required('항목을 삭제하지 못했습니다.', error);
+  if (!data) throw new HttpError(404, '항목을 찾지 못했습니다.');
+  res.json({ ok:true });
+}));
+
 app.get('/api/config', (_, res) => res.json({
   supabaseUrl: SUPABASE_URL,
   publishableKey: SUPABASE_PUBLISHABLE_KEY,

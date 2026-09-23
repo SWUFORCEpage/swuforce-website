@@ -6,6 +6,7 @@ import {
   LogIn, LogOut, MessageCircle, Plus, Send, Settings2,
   Shield, ShieldCheck, UserRound, UsersRound,
 } from 'lucide-react';
+import { PageContent, AdminPageContent } from './site-content.jsx';
 
 const AuthContext = createContext(null);
 const fmt = value => value ? new Date(value).toLocaleDateString('ko-KR') : '';
@@ -155,6 +156,7 @@ export function Board() {
   const { data, error, loading } = useFetch('/api/board');
   const own = useFetch('/api/my/posts', [Boolean(session)]);
   return <Page kicker="COMMUNITY / BOARD" title="Community" description="비회원도 문의를 남길 수 있습니다. 답변은 현재 SWUFORCE 운영진만 작성합니다.">
+    <PageContent page="community" title="게시판 공지" embedded/>
     <div className="portal-actions"><a className="portal-button" href="/board/new"><Plus size={18}/> 문의 작성하기</a></div>
     <div className="portal-card">
       <h2>공개 게시글</h2>
@@ -248,6 +250,7 @@ export function Members() {
   const shown = (data?.members || []).filter(x => filter === 'all' || x.membership_status === filter);
   return <Page kicker="PEOPLE / MEMBERS" title="Members" description="공개에 동의한 학회원의 활동 기수와 활동 상태를 소개합니다.">
     <div className="filter-tabs"><button className={filter === 'all' ? 'selected' : ''} onClick={() => setFilter('all')}>전체</button><button className={filter === 'active' ? 'selected' : ''} onClick={() => setFilter('active')}>활동 학회원</button><button className={filter === 'alumni' ? 'selected' : ''} onClick={() => setFilter('alumni')}>졸업 학회원</button></div>
+    <PageContent page="members" title="학회원 공지" embedded/>
     <Alert message={error}/>
     {loading ? <p className="muted">학회원 명단을 불러오는 중…</p> : shown.length ? <div className="member-grid">{shown.map((m,i) => <div className="portal-card member-tile" key={`${m.display_name}-${m.cohort}-${i}`}><div className="avatar-mark"><UserRound size={25}/></div><h2>{m.display_name}</h2><BadgeRow badges={m.badges}/></div>)}</div> : <div className="portal-card empty-state">현재 공개된 학회원 명단이 없습니다.</div>}
     <p className="muted directory-note">명단과 배지는 운영진 승인과 학회원 본인의 공개 동의가 확인된 경우에만 표시됩니다.</p>
@@ -256,6 +259,7 @@ export function Members() {
 export function Recruit() {
   return <Page kicker="JOIN / RECRUITMENT" title="Recruit" description="SWUFORCE와 함께 디지털포렌식을 공부할 새로운 학우들을 기다립니다.">
     <div className="recruit-hero portal-card"><div className="recruit-status"><Clock3 size={19}/> 모집 마감</div><p className="recruit-eyebrow">SWUFORCE RECRUITMENT</p><h2>7.5기 모집이<br/><span>마감되었습니다.</span></h2><p>2027년도 1학기에 예정된 <strong>8기 모집</strong>에 많은 관심 부탁드립니다.</p><a className="portal-button" href="https://www.instagram.com/swu.f0rc3/" target="_blank" rel="noreferrer">공식 Instagram에서 소식 받기 <ArrowUpRight size={18}/></a></div>
+    <PageContent page="recruit" title="모집 공지" embedded/>
     <div className="portal-card"><h2>모집 소식 안내</h2><p>모집 일정, 지원 자격, 선발 절차 및 지원 링크는 모집 공고가 확정되면 공식 채널에 안내합니다. 회원가입은 기존 학회원에게도 열려 있으며, 학회원 배지는 운영진 승인 후 발급됩니다.</p></div>
   </Page>;
 }
@@ -336,6 +340,7 @@ export function MyPage() {
       <div className="portal-card"><h2>학회원 명단 공개</h2><p>동의하는 경우에만 홈페이지 학회원 명단에 표시 이름과 활동 기수·승인된 배지를 공개합니다. 언제든지 변경할 수 있습니다. 역대 운영진 이력 역시 동의한 경우에만 공개됩니다.</p>
         <label className="inline-check opt-in"><input disabled={busy} type="checkbox" checked={Boolean(profile.public_opt_in)} onChange={changeOptIn}/> 공개 명단에 내 정보 표시하기</label>
       </div>
+      <PageContent page="me" title="학회원 안내" session={session} embedded/>
       <div className="portal-actions">{profile.can_moderate && <a href="/admin" className="portal-button"><Settings2 size={16}/> 운영진 관리</a>}<button className="portal-outline" onClick={signOut}><LogOut size={16}/> 로그아웃</button></div>
     </>}
   </Page>;
@@ -434,10 +439,11 @@ export function Admin() {
   const [tab, setTab] = useState('posts');
   if (!ready) return <Page kicker="MANAGEMENT" title="Admin" description="권한 확인 중…"><p>불러오는 중…</p></Page>;
   if (!profile?.can_moderate) return <Page kicker="MANAGEMENT" title="Admin" description="현재 운영진 및 승인된 사이트 관리자 전용 페이지입니다."><div className="portal-card"><p>이 페이지에 접근할 수 없습니다.</p><a className="portal-button" href="/login">로그인하기</a></div></Page>;
-  return <Page kicker="MANAGEMENT" title="Admin" description="비공개 문의 확인·답변과 학회원 승인, 운영진 이력을 관리합니다.">
+  return <Page kicker="MANAGEMENT" title="Admin" description="게시판, 학회원 및 홈페이지 콘텐츠를 관리합니다.">
     <div className="filter-tabs"><button className={tab === 'posts' ? 'selected' : ''} onClick={() => setTab('posts')}>게시판 관리</button>
-      {profile.can_administer && <><button className={tab === 'members' ? 'selected' : ''} onClick={() => setTab('members')}>학회원 관리</button><button className={tab === 'terms' ? 'selected' : ''} onClick={() => setTab('terms')}>역대 운영진</button></>}</div>
+      {profile.can_administer && <><button className={tab === 'content' ? 'selected' : ''} onClick={() => setTab('content')}>페이지 콘텐츠</button><button className={tab === 'members' ? 'selected' : ''} onClick={() => setTab('members')}>학회원 관리</button><button className={tab === 'terms' ? 'selected' : ''} onClick={() => setTab('terms')}>역대 운영진</button></>}</div>
     {tab === 'posts' && <AdminPosts session={session}/>}
+    {tab === 'content' && profile.can_administer && <AdminPageContent session={session}/>}
     {tab === 'members' && profile.can_administer && <AdminMembers session={session} ownId={profile.id}/>}
     {tab === 'terms' && profile.can_administer && <AdminTerms session={session}/>}
     <div className="portal-info"><ShieldCheck size={21}/><p>회원·운영진 권한은 서버에서 매 요청마다 검증합니다. 운영진 표시만으로 관리자 권한이 자동 발급되지 않습니다.</p></div>

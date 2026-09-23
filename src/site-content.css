@@ -1,0 +1,63 @@
+/* Neutral, official site typography and administrator-managed content. */
+.swu-wing-panel{width:min(350px,calc(100vw - 20px));background:#172438}
+.swu-wing-panel-head{padding:20px 24px;border-color:#ffffff21}
+.swu-wing-panel-caption{padding:16px 25px 9px;letter-spacing:.09em}
+.swu-wing-links{padding:0 12px 16px}
+.swu-wing-link{min-height:56px;padding:9px 12px;gap:12px}
+.swu-wing-link:hover,.swu-wing-link.is-active{padding-left:15px}
+.swu-wing-link-index{min-width:21px;font-size:9px}
+.swu-wing-link-text{gap:3px}
+.swu-wing-link-text strong{font:600 18px/1.3 'Manrope','Noto Sans KR',sans-serif;letter-spacing:-.02em}
+.swu-wing-link-text small{font:400 10px/1.35 'Noto Sans KR',sans-serif}
+.swu-wing-link-end{font-size:15px}
+.swu-wing-bottom{padding:13px 24px 22px}
+.swu-wing-header .brand-wordmark small,.swu-wing-panel-brand small{letter-spacing:.06em;text-align:center}
+.swu-wing-header .brand-wordmark{align-items:stretch}
+.swu-wing-header .brand-wordmark strong{text-align:center}
+.home-hero-copy h1{font-weight:750;letter-spacing:-.06em;font-size:clamp(37px,4.1vw,61px);line-height:1.38}
+.home-hero-copy>p,.home-connections-heading p{color:#526578}
+.home-connections-heading h2{font:750 clamp(29px,3vw,42px)/1.35 'Noto Sans KR',sans-serif;letter-spacing:-.045em}
+.home-social-card strong{font:700 clamp(18px,1.6vw,24px)/1.4 'Noto Sans KR',sans-serif;letter-spacing:-.035em}
+.home-video-meta strong{font-weight:700}
+.home-bottom-links h3{font-size:22px;font-weight:700}
+.home-video-cover:before{content:'SWUFORCE / VIDEO'}
+.about-modern-head h2,.advisor-layout h2,.section-heading h2{letter-spacing:-.045em}
+.cms-section{padding:67px 0;background:#fafcff;color:#172b41;border-top:1px solid #e0e8f1}
+.cms-section.cms-embedded{padding:14px 0 25px;background:transparent;border:0}
+.cms-heading{margin-bottom:28px}
+.cms-heading>span{font:500 10px 'DM Mono',monospace;color:#607e95;letter-spacing:.09em}
+.cms-heading h2{font:700 clamp(23px,3vw,31px)/1.4 'Noto Sans KR',sans-serif;letter-spacing:-.035em;margin:9px 0 0}
+.cms-embedded .cms-heading h2{font-size:21px}
+.cms-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:18px}
+.cms-item{min-width:0;overflow:hidden;border:1px solid #e0e8f1;background:#fff;display:flex;flex-direction:column}
+.cms-item>img{width:100%;aspect-ratio:16/9;object-fit:cover}
+.cms-item-content{padding:25px 27px 28px}
+.cms-item-category{font:600 11px 'Noto Sans KR',sans-serif;color:#557b9b;display:block;margin-bottom:9px}
+.cms-item h3{font:700 clamp(19px,2vw,24px)/1.45 'Noto Sans KR',sans-serif;letter-spacing:-.03em;margin:0 0 10px}
+.cms-item p{font:400 14px/1.85 'Noto Sans KR',sans-serif;color:#586c7c;white-space:pre-wrap;overflow-wrap:anywhere;margin:0 0 19px}
+.cms-item a{display:inline-flex;gap:7px;align-items:center;font:600 12px 'Noto Sans KR',sans-serif;color:#285b83;border-bottom:1px solid #9dbbd2;padding-bottom:4px}
+.cms-error{padding:12px 17px;border:1px solid #e4c3b8;color:#864436;background:#fff8f5;font:13px/1.5 'Noto Sans KR',sans-serif}
+.cms-success{padding:12px 17px;border:1px solid #b9d5c3;color:#285d3a;background:#f3fbf5;font:13px/1.5 'Noto Sans KR',sans-serif}
+.cms-admin h2{margin-top:0}
+.cms-admin-page{display:flex;flex-direction:column;gap:8px;font-weight:700;max-width:280px;margin:22px 0}
+.cms-admin select,.cms-admin input:not([type='checkbox']),.cms-admin textarea{box-sizing:border-box;width:100%;border:1px solid #bdcbda;background:#fff;border-radius:3px;min-height:42px;padding:9px 10px;color:#243749;font:13px 'Noto Sans KR',sans-serif}
+.cms-admin textarea{min-height:115px;resize:vertical}
+.cms-admin-form{padding:22px;border:1px solid #dbe6ef;background:#f8fbfd;margin:24px 0}
+.cms-admin-form h3,.cms-admin-list h3{font:700 20px 'Noto Sans KR',sans-serif;margin:0 0 20px}
+.cms-admin-fields{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:18px}
+.cms-admin-fields>label{display:flex;flex-direction:column;gap:7px;font:600 12px 'Noto Sans KR',sans-serif}
+.cms-admin-fields .cms-wide{grid-column:1/-1}
+.cms-admin-fields .cms-check{display:flex;flex-direction:row;align-items:center;gap:9px;min-height:42px}
+.cms-admin-fields .cms-check input{width:18px;height:18px}
+.cms-admin-actions{display:flex;gap:12px;align-items:center;margin:22px 0 12px}
+.cms-admin-row{padding:17px 0;border-top:1px solid #dfebf3;display:flex;justify-content:space-between;gap:20px;align-items:center}
+.cms-admin-row>div:first-child{display:flex;flex-direction:column;align-items:flex-start;gap:5px;min-width:0}
+.cms-admin-row strong{font:700 15px 'Noto Sans KR',sans-serif;overflow-wrap:anywhere}
+.cms-admin-row small{color:#63798a}
+.cms-order{font:11px 'DM Mono',monospace;color:#668199}
+.cms-state{background:#eef1f5;color:#526276;padding:4px 9px;font:11px 'Noto Sans KR',sans-serif}
+.cms-state.published{color:#1c6649;background:#e8f4ef}
+.cms-row-actions{display:flex;flex-wrap:wrap;gap:7px}
+.cms-row-actions button{min-height:37px;padding:7px 11px}
+.cms-delete{color:#994f49!important;border-color:#e3c4bf!important}
+@media(max-width:760px){.swu-wing-link{min-height:52px}.swu-wing-link-text strong{font-size:17px}.home-connections-heading h2{font-size:31px}.cms-section{padding:42px 0}.cms-grid,.cms-admin-fields{grid-template-columns:1fr}.cms-admin-form{padding:16px}.cms-admin-row{align-items:flex-start;flex-direction:column}.cms-item-content{padding:20px}.cms-admin-fields .cms-wide{grid-column:auto}}
