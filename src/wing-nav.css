@@ -12,7 +12,7 @@
 .swu-wing-layer{position:fixed;inset:0;z-index:150;isolation:isolate;}
 .swu-wing-backdrop{position:absolute;inset:0;border:0;background:rgba(3,12,25,.69);cursor:pointer;animation:wing-fade .22s ease-out;}
 .swu-wing-panel{position:absolute;inset:0 0 0 auto;width:min(435px,calc(100vw - 28px));background:#0e2037;color:#edf5fc;box-shadow:-24px 0 90px rgba(0,0,0,.31);display:flex;flex-direction:column;max-height:100dvh;overflow-y:auto;overscroll-behavior:contain;animation:wing-slide .3s cubic-bezier(.2,.74,.19,1);}
-.swu-wing-panel:before{content:'';position:absolute;right:-125px;top:100px;width:335px;height:335px;border-radius:50%;border:1px solid rgba(130,194,239,.13);box-shadow:0 0 0 62px rgba(130,194,239,.035),0 0 0 124px rgba(130,194,239,.024);pointer-events:none;}
+.swu-wing-panel:before{display:none;content:'';position:absolute;right:-125px;top:100px;width:335px;height:335px;border-radius:50%;border:1px solid rgba(130,194,239,.13);box-shadow:0 0 0 62px rgba(130,194,239,.035),0 0 0 124px rgba(130,194,239,.024);pointer-events:none;}
 .swu-wing-panel-head{position:relative;display:flex;align-items:center;justify-content:space-between;gap:12px;padding:28px 26px 28px 31px;border-bottom:1px solid rgba(164,205,238,.19);}
 .swu-wing-panel-brand{display:flex;align-items:center;gap:12px;font:800 20px/.99 'Manrope',sans-serif;letter-spacing:-.055em;}
 .swu-wing-panel-brand img{width:40px;height:40px;object-fit:contain;filter:brightness(0) invert(1);}

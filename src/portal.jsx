@@ -253,21 +253,6 @@ export function Members() {
     <p className="muted directory-note">명단과 배지는 운영진 승인과 학회원 본인의 공개 동의가 확인된 경우에만 표시됩니다.</p>
   </Page>;
 }
-export function Officers() {
-  const { data, loading, error } = useFetch('/api/officers');
-  const grouped = (data?.terms || []).reduce((groups, term) => {
-    (groups[term.term_label] ||= []).push(term); return groups;
-  }, {});
-  const today = new Intl.DateTimeFormat('sv-SE', { timeZone: 'Asia/Seoul' }).format(new Date());
-  return <Page kicker="PEOPLE / LEADERSHIP" title="Leadership" description="SWUFORCE와 함께한 운영진의 발자취를 기록합니다.">
-    <Alert message={error}/>
-    {loading ? <p className="muted">역대 운영진을 불러오는 중…</p> : Object.keys(grouped).length ? Object.entries(grouped).map(([term, entries]) => <section className="portal-card history-term" key={term}>
-      <div className="term-heading"><Crown size={25}/><h2>{term}</h2></div>
-      <div className="term-grid">{entries.map(entry => <div className="term-person" key={entry.id}><strong>{entry.display_name}</strong><Badge type="gold">{entry.position === 'president' ? '회장' : '부회장'}</Badge><Badge>{entry.cohort}기</Badge><small>{shortDate(entry.start_on)} — {entry.end_on ? shortDate(entry.end_on) : '현재'}</small>{entry.start_on <= today && (!entry.end_on || entry.end_on >= today) && <Badge type="blue">재임 중</Badge>}</div>)}</div>
-    </section>) : <div className="portal-card empty-state">공개 동의가 확인된 운영진 이력이 아직 없습니다. 관리자 페이지에서 등록할 수 있습니다.</div>}
-    <p className="muted directory-note">등재된 이름은 본인의 공개 동의를 확인한 뒤 게시합니다.</p>
-  </Page>;
-}
 export function Recruit() {
   return <Page kicker="JOIN / RECRUITMENT" title="Recruit" description="SWUFORCE와 함께 디지털포렌식을 공부할 새로운 학우들을 기다립니다.">
     <div className="recruit-hero portal-card"><div className="recruit-status"><Clock3 size={19}/> 모집 마감</div><p className="recruit-eyebrow">SWUFORCE RECRUITMENT</p><h2>7.5기 모집이<br/><span>마감되었습니다.</span></h2><p>2027년도 1학기에 예정된 <strong>8기 모집</strong>에 많은 관심 부탁드립니다.</p><a className="portal-button" href="https://www.instagram.com/swu.f0rc3/" target="_blank" rel="noreferrer">공식 Instagram에서 소식 받기 <ArrowUpRight size={18}/></a></div>

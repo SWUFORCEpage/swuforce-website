@@ -9,6 +9,17 @@ export const site = {
   tagline: 'DIG DEEPER. FIND THE TRUTH.', // Website creative tagline, not an official motto.
   yearEstablished: '2020',
   partnerships: ['KUCIS', 'CCA', 'hspace'],
+  advisor: {
+    name: '김성웅',
+    department: '서울여자대학교 정보보호학과 · 2023년 공식 자료 기준',
+    source: 'https://www.kisia.or.kr/bucket/uploads/2024/01/25/%5Bkisia%5D%202023%20%EB%8C%80%ED%95%99%EC%A0%95%EB%B3%B4%EB%B3%B4%ED%98%B8%EB%8F%99%EC%95%84%EB%A6%AC%20%EC%84%B1%EA%B3%BC%EC%9E%90%EB%A3%8C%EC%A7%91.pdf',
+  },
+  award: {
+    year: '',
+    title: 'KUCIS 우수 동아리 선정',
+    photo: '/kucis-award.jpg', // 실제 수상 사진을 public/kucis-award.jpg로 추가하면 즉시 표시
+    source: 'https://kisia.or.kr/talent_support/kucis_info/',
+  },
   contact: {
     email: '',
     instagram: 'https://www.instagram.com/swu.f0rc3/',
@@ -95,7 +106,7 @@ export const milestones = [
   {
     year: '2025',
     title: '더 넓은 보안 커뮤니티로',
-    text: '7월 INCOGNITO 2025에 참가한 이야기를 공식 Velog에 기록했습니다.',
+    text: 'INCOGNITO 2025 참여와 2025년 KUCIS 우수 동아리 선정 등 학회의 활동을 이어갔습니다.',
     url: 'https://velog.io/@swuf0rc3_',
   },
   {
