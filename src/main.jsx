@@ -184,7 +184,7 @@ function About() {
   </section>;
 }
 function Advisor() {
-  return <section className="about-advisor" aria-labelledby="advisor-title"><div className="container advisor-layout"><div><span className="advisor-overline">02 / FACULTY ADVISOR</span><h2 id="advisor-title">지도교수 안내</h2><p>학회 지도와 활동에 관한 정보는 운영진 확인 후 최신 내용을 반영합니다.</p></div><div className="advisor-card"><span>2023 KUCIS ACTIVITY REPORT</span><strong>{site.advisor.name} 교수님</strong><p>{site.advisor.department}</p><small>2023년 공식 성과자료집에 기재된 지도교수 기록입니다. 현재 지도교수 정보는 운영진 확인이 필요합니다.</small><a href={site.advisor.source} target="_blank" rel="noopener noreferrer">기록 출처 확인 <ArrowUpRight size={15}/></a></div></div></section>;
+  return <section className="about-advisor" aria-labelledby="advisor-title"><div className="container advisor-layout"><div><span className="advisor-overline">02 / FACULTY ADVISOR</span><h2 id="advisor-title">지도교수</h2><p>SWUFORCE의 지도교수를 소개합니다.</p></div><div className="advisor-card"><span>SWUFORCE · FACULTY ADVISOR</span><strong>{site.advisor.name} 교수님</strong><p>{site.advisor.department}</p><small>소학회 운영진 제공 정보를 반영했습니다.</small></div></div></section>;
 }
 
 function Focus() {

@@ -14,7 +14,7 @@ DECLARE
   notice_version text;
 BEGIN
   notice_version := coalesce(new.raw_user_meta_data ->> 'privacy_notice_version','');
-  IF notice_version <> '2026-09-23-v2'
+  IF notice_version <> '2026-09-23-v3'
       OR coalesce(new.raw_user_meta_data ->> 'privacy_agreed','') <> 'true' THEN
     RAISE EXCEPTION 'Registration privacy acknowledgement is required';
   END IF;

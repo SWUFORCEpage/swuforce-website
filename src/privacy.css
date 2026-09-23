@@ -30,3 +30,15 @@
 .privacy-history{border-collapse:collapse;min-width:540px;width:100%;font-size:13px;margin-top:20px}
 .privacy-history th,.privacy-history td{padding:12px;border-bottom:1px solid #dfe9f2;text-align:left}
 .privacy-history th{background:#edf3f8}
+
+/* v2.6 provider-role and international-transfer disclosure */
+.privacy-service-note{padding:20px 24px;margin:21px 0;background:#f3f7fa;border-left:3px solid #87a9c1}
+.privacy-service-detail{padding:22px 24px;margin:22px 0;border:1px solid #dce6ed;background:#fff}
+.privacy-service-note h3,.privacy-service-detail h3,.privacy-review-checks h3{font:700 16px/1.5 'Noto Sans KR',sans-serif;color:#264862;margin:0 0 12px}
+.privacy-service-note p,.privacy-service-detail p{line-height:1.85;margin:10px 0}
+.privacy-service-note a{color:#245d84;text-decoration:underline;text-underline-offset:3px}
+.privacy-provider-text{white-space:pre-wrap;overflow-wrap:anywhere;font:400 13px/1.85 'Noto Sans KR',sans-serif;color:#3b5267}
+.privacy-review-checks{border:1px solid #d4e1eb;background:#f4f8fb;padding:17px 21px;margin:15px 0}
+.privacy-review-checks ul{padding-left:22px;margin:10px 0}.privacy-review-checks li{margin:5px 0}
+.privacy-review-checks p{font-size:12px;color:#657c8c}
+@media(max-width:600px){.privacy-service-note,.privacy-service-detail{padding:17px 15px}}
