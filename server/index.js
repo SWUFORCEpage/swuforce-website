@@ -3,6 +3,7 @@ import helmet from 'helmet';
 import rateLimit from 'express-rate-limit';
 import { createClient } from '@supabase/supabase-js';
 import { randomBytes, createHash, timingSafeEqual } from 'node:crypto';
+import { ARTICLE_IMAGE_BUCKET, MAX_IMAGE_BYTES, verifyImageBuffer, newArticleImagePath } from './article-media.js';
 import { fileURLToPath } from 'node:url';
 import path from 'node:path';
 import { existsSync } from 'node:fs';
@@ -48,6 +49,8 @@ app.use(helmet({
     },
   },
 }));
+// Blog Markdown can be longer than ordinary API request bodies. Keep the larger cap scoped.
+app.use('/api/admin/content', express.json({ limit: '384kb' }));
 app.use(express.json({ limit: '32kb' }));
 
 class HttpError extends Error {
@@ -150,13 +153,49 @@ app.get('/api/content/:page', route(async (req, res) => {
     const member = await authenticated(req);
     if (!isConfirmed(member)) throw new HttpError(403, '승인된 학회원에게만 공개됩니다.');
   }
+  const offset = Number(req.query.offset || 0);
+  if (!Number.isSafeInteger(offset) || offset < 0 || offset > 5000) throw new HttpError(400, '목록 위치가 올바르지 않습니다.');
   const { data, error } = await supabase.from('page_entries')
-    .select('id,page,category,title,body,link_label,link_url,image_url,sort_order')
+    .select('id,page,category,title,body,link_label,link_url,image_url,sort_order,published_on,created_at')
     .eq('page', req.params.page).eq('is_published', true)
-    .order('sort_order', { ascending:true }).order('created_at', { ascending:false }).limit(60);
+    .order('sort_order', { ascending:true }).order('created_at', { ascending:false }).range(offset, offset + 59);
   required('페이지 정보를 불러올 수 없습니다. 데이터베이스 마이그레이션을 확인해 주세요.', error);
-  res.json({ entries: data || [] });
+  res.json({ entries: data || [], hasMore:(data||[]).length===60 });
 }));
+// Full article view. Unpublished entries are visible only to authenticated site administrators.
+app.get('/api/articles/:id', route(async (req, res) => {
+  if (!/^[0-9a-f-]{36}$/i.test(req.params.id)) throw new HttpError(404, '글을 찾지 못했습니다.');
+  const { data: item, error } = await supabase.from('page_entries')
+    .select('id,page,category,title,body,article_body,link_label,link_url,image_url,published_on,is_published,created_at,updated_at')
+    .eq('id', req.params.id).maybeSingle();
+  required('글을 불러오지 못했습니다. 블로그 마이그레이션을 확인해 주세요.', error);
+  if (!item || !isContentPage(item.page)) throw new HttpError(404, '글을 찾지 못했습니다.');
+  const profile = await actor(req);
+  const canPreview = isAdministrator(profile);
+  if (!item.is_published && !canPreview) throw new HttpError(404, '글을 찾지 못했습니다.');
+  if (!canPreview && item.page === 'me' && !profile) throw new HttpError(401, '로그인이 필요합니다.');
+  if (!canPreview && item.page === 'mentoring' && !isConfirmed(profile)) throw new HttpError(403, '승인된 학회원에게만 공개됩니다.');
+  res.json({ article:item });
+}));
+// Admin-only raw image upload. Buffer is checked against its claimed media type.
+const articleUploadLimiter = rateLimit({windowMs:60*60*1000,limit:45,standardHeaders:'draft-7',legacyHeaders:false});
+app.post('/api/admin/content/upload-image', articleUploadLimiter,
+  express.raw({type:'application/octet-stream',limit:MAX_IMAGE_BYTES}), route(async (req,res)=>{
+    await admin(req);
+    const uploadPage = req.get('x-content-page');
+    if (!isContentPage(uploadPage) || ['me','mentoring'].includes(uploadPage))
+      throw new HttpError(400, '비공개 회원·멘토링 페이지에는 공개 사진을 업로드할 수 없습니다.');
+    const declared = req.get('x-image-type');
+    const detected = verifyImageBuffer(req.body, declared);
+    if (!detected) throw new HttpError(400, 'JPEG, PNG 또는 WebP 원본 사진(각 6MB 이하)만 올릴 수 있습니다.');
+    const storagePath = newArticleImagePath(detected.ext);
+    const { error } = await supabase.storage.from(ARTICLE_IMAGE_BUCKET)
+      .upload(storagePath,req.body,{contentType:detected.contentType,upsert:false,cacheControl:'3600'});
+    required('사진을 업로드하지 못했습니다. Supabase Storage 버킷을 먼저 생성했는지 확인해 주세요.',error);
+    const { data } = supabase.storage.from(ARTICLE_IMAGE_BUCKET).getPublicUrl(storagePath);
+    res.status(201).json({url:data.publicUrl,path:storagePath});
+  }));
+
 app.get('/api/admin/content/:page', route(async (req, res) => {
   await admin(req);
   if (!isContentPage(req.params.page)) throw new HttpError(404, '페이지를 찾지 못했습니다.');

@@ -14,9 +14,11 @@ export function safeHttpsUrl(value) {
 }
 export function validatePageEntry(body) {
   if (!body || typeof body !== 'object' || Array.isArray(body)) return null;
-  const { page, title, body: paragraph, category, link_url, link_label, image_url, sort_order, is_published } = body;
+  const { page, title, body: paragraph, category, link_url, link_label, image_url, sort_order, is_published, article_body = '', published_on = null } = body;
   if (!isContentPage(page) || typeof title !== 'string' || title.trim().length < 2 || title.trim().length > 120) return null;
   if (typeof paragraph !== 'string' || paragraph.trim().length > 2200) return null;
+  if (typeof article_body !== 'string' || article_body.trim().length > 100000) return null;
+  if (published_on !== null && (typeof published_on !== 'string' || !/^\d{4}-\d{2}-\d{2}$/.test(published_on) || !isRealDate(published_on))) return null;
   if (typeof category !== 'string' || category.trim().length > 35) return null;
   if (typeof link_label !== 'string' || link_label.trim().length > 45) return null;
   if (typeof link_url !== 'string' || typeof image_url !== 'string') return null;
@@ -29,5 +31,12 @@ export function validatePageEntry(body) {
     page, title: title.trim(), body: paragraph.trim(), category: category.trim(),
     link_label: link ? (link_label.trim() || '자세히 보기') : '',
     link_url: link, image_url: image, sort_order, is_published,
+    article_body: article_body.trim(), published_on,
   };
+}
+
+function isRealDate(value) {
+  const [y, m, d] = value.split('-').map(Number);
+  const date = new Date(Date.UTC(y,m-1,d));
+  return date.getUTCFullYear()===y && date.getUTCMonth()===m-1 && date.getUTCDate()===d;
 }

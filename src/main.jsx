@@ -13,6 +13,7 @@ import './wing-nav.css';
 import './site-v2.2.css';
 import './site-content.css';
 import { PageContent } from './site-content.jsx';
+import { ArticleDetail } from './article.jsx';
 import { PortalProvider, PortalRoutes, useAuth } from './portal.jsx';
 
 const icons = { hardDrive: HardDrive, smartphone: Smartphone, code: Code2 };
@@ -253,7 +254,8 @@ function NewsPage() {
 function App() {
   const path = window.location.pathname.replace(/\/$/, '') || '/';
   const pages = { '/about': <AboutPage/>, '/study': <StudyPage/>, '/news': <NewsPage/> };
-  return <PortalProvider><a className="skip-link" href="#main-content">본문으로 건너뛰기</a><Header/>{path === '/' ? <main id="main-content" className="swu-home"><Hero/><PageContent page="home" title="추가 공지"/><HomeConnections/></main> : (pages[path] || <PortalRoutes/>)}<Footer/></PortalProvider>;
+  const articleMatch = /^\/articles\/([0-9a-f-]{36})$/i.exec(path);
+  return <PortalProvider><a className="skip-link" href="#main-content">본문으로 건너뛰기</a><Header/>{articleMatch ? <ArticleDetail id={articleMatch[1]}/> : path === '/' ? <main id="main-content" className="swu-home"><Hero/><PageContent page="home" title="추가 공지"/><HomeConnections/></main> : (pages[path] || <PortalRoutes/>)}<Footer/></PortalProvider>;
 }
 
 createRoot(document.getElementById('root')).render(<React.StrictMode><App/></React.StrictMode>);
